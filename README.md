@@ -1,2 +1,2 @@
 # AtomicAI
-Classification of atoms in a complex MD trajectory  
+Classification of atoms in a complex MD trajectory.   
