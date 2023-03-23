@@ -1,0 +1,22 @@
+[console_scripts]
+cif2cq = AtomicAI.tools.cif2cq:cif2cq
+cq2cif = AtomicAI.tools.cq2cif:cq2cif
+cq2vasp = AtomicAI.tools.cq2vasp:cq2vasp
+dim_reduction = AtomicAI.dim_reduction.dim_reduction:dim_reduction
+dim_reduction_mpi = AtomicAI.dim_reduction.dim_reduction_mpi:dim_reduction_mpi
+generate_descriptors = AtomicAI.descriptors.calculate_descriptors:calculate_descriptors
+laaf = AtomicAI.descriptors.calculate_laaf_des:calculate_laaf_des
+lpp = AtomicAI.dim_reduction.lpp:lpp
+optimize_tslpp_hyperparameters_with_prediction = AtomicAI.dim_reduction.perform_tslpp_for_hyperparameters_with_prediction:perform_tslpp_hyperparameters
+optimize_tslpp_hyperparameters_without_prediction = AtomicAI.dim_reduction.perform_tslpp_for_hyperparameters:perform_tslpp_hyperparameters
+pca = AtomicAI.dim_reduction.pca:pca
+plot_clusters = AtomicAI.plots.plot_clusters:plot_clusters
+plot_md_stats = AtomicAI.plots.plot_md_stats:plot_md_stats
+plot_rdf_data = AtomicAI.plots.plot_rdf_data:read_RDF_data
+predict_tslpp = AtomicAI.dim_reduction.perform_tslpp_predict:perform_tslpp_predict
+rdf = AtomicAI.tools.rdf:RDF
+structure_analysis = AtomicAI.tools.structure_analysis:structure_analysis
+vasp2cif = AtomicAI.tools.vasp2cif:vasp2cif
+vasp2cq = AtomicAI.tools.vasp2cq:vasp2cq
+vasp2xyz = AtomicAI.tools.vasp2xyz:vasp2xyz
+xyz2vasp = AtomicAI.tools.xyz2vasp:xyz2vasp
