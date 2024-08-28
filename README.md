@@ -3,6 +3,7 @@ Python-based code for machine learning models building to use in the field of co
 ## Analysis
 Processing and visualization of atomic coordinates of different file formats such as CIF, VASP, XYZ, Conquest, etc.
 AtomicAI uses 'ase' code for reading and writing structure files.
+# Ploting LAMMPS log file
 
 ## Data processing
 Classification of atoms in a trajectory file.
