@@ -3,12 +3,11 @@ from setuptools import setup, find_packages
 with open("README.md", "r", encoding="utf-8") as fh:
     long_description = fh.read()
 
-from setuptools import setup, find_packages
-
-with open("README.md", "r", encoding="utf-8") as fh:
-    long_description = fh.read()
-
 install_requires = [
+        #'pip   >= 22.1.2',
+        #'wheel >= 0.37.1',
+        #'twine >= 4.0.1',
+        #'ase   >= 3.22.1',
         #'pip   >= 22.1.2',
         #'wheel >= 0.37.1',
         #'twine >= 4.0.1',
@@ -18,7 +17,6 @@ install_requires = [
         #'plotly >= 5.22.0',
         #'pandas >= 2.2.2',
         #'kaleido >= 0.2.1',
-
         ]
 
 setup(
@@ -76,6 +74,7 @@ setup(
         'structure_analysis=AtomicAI.tools.structure_analysis:structure_analysis',
 
         'plot_rdf_data=AtomicAI.plots.plot_rdf_data:read_RDF_data',
+        'plot_md_stats=AtomicAI.plots.plot_md_stats:plot_md_stats',
         'plot_md_stats=AtomicAI.tools.plt_md_stats:plt_md_stats',
         'plot_vasp_md=AtomicAI.tools.plot_vasp_md:plot_vasp_md',
         'plot_lammps_md=AtomicAI.tools.plot_lammps_md:plot_lammps_md',
@@ -92,7 +91,7 @@ setup(
         'dim_reduction_mpi=AtomicAI.dim_reduction.dim_reduction_mpi:dim_reduction_mpi',
         'optimize_tslpp_hyperparameters_without_prediction=AtomicAI.dim_reduction.perform_tslpp_for_hyperparameters:perform_tslpp_hyperparameters',
         'optimize_tslpp_hyperparameters_with_prediction=AtomicAI.dim_reduction.perform_tslpp_for_hyperparameters_with_prediction:perform_tslpp_hyperparameters',
-        'predict_tslpp=AtomicAI.dim_reduction.perform_tslpp_predict:perform_tslpp_predict'
+        'predict_tslpp=AtomicAI.dim_reduction.perform_tslpp_predict:perform_tslpp_predict',
 
 
 

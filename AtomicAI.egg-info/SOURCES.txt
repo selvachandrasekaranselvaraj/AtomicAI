@@ -1,40 +1,23 @@
 LICENSE.md
 README.md
-<<<<<<< HEAD
-=======
 setup.cfg
->>>>>>> 5bcf4f0 (plot_lammps_md added)
 setup.py
 AtomicAI/__init__.py
 AtomicAI.egg-info/PKG-INFO
 AtomicAI.egg-info/SOURCES.txt
 AtomicAI.egg-info/dependency_links.txt
 AtomicAI.egg-info/entry_points.txt
-<<<<<<< HEAD
-AtomicAI.egg-info/requires.txt
-=======
->>>>>>> 5bcf4f0 (plot_lammps_md added)
 AtomicAI.egg-info/top_level.txt
 AtomicAI/data/__init__.py
 AtomicAI/data/atomic_weight.py
 AtomicAI/data/data_lib.py
-<<<<<<< HEAD
-=======
 AtomicAI/descriptors/MultiSplit2b3b_index_ss.py
 AtomicAI/descriptors/MultiSplit2b3b_index_ss_old.py
 AtomicAI/descriptors/Multi_test.py
->>>>>>> 5bcf4f0 (plot_lammps_md added)
 AtomicAI/descriptors/__init__.py
 AtomicAI/descriptors/acsf.py
 AtomicAI/descriptors/calculate_descriptors.py
 AtomicAI/descriptors/calculate_laaf_des.py
-<<<<<<< HEAD
-AtomicAI/descriptors/force_descriptor.py
-AtomicAI/descriptors/force_descriptor_functions.py
-AtomicAI/descriptors/laaf.py
-AtomicAI/descriptors/mbsf.py
-AtomicAI/descriptors/old_calculate_descriptors.py
-=======
 AtomicAI/descriptors/default_variables.py
 AtomicAI/descriptors/define_eta.py
 AtomicAI/descriptors/define_mirror_reduce_cube.py
@@ -53,7 +36,6 @@ AtomicAI/descriptors/sum_G2b00_all.py
 AtomicAI/descriptors/sum_G3b00ss.py
 AtomicAI/descriptors/sum_G3b01ss.py
 AtomicAI/descriptors/sum_G3b11ss.py
->>>>>>> 5bcf4f0 (plot_lammps_md added)
 AtomicAI/dim_reduction/1.py
 AtomicAI/dim_reduction/__init__.py
 AtomicAI/dim_reduction/compute_lpp.py
@@ -68,10 +50,7 @@ AtomicAI/dim_reduction/perform_tslpp_for_hyperparameters_with_prediction-Copy1.p
 AtomicAI/dim_reduction/perform_tslpp_for_hyperparameters_with_prediction.py
 AtomicAI/dim_reduction/perform_tslpp_predict.py
 AtomicAI/dim_reduction/select_descriptors.py
-<<<<<<< HEAD
-=======
 AtomicAI/dim_reduction/test.py
->>>>>>> 5bcf4f0 (plot_lammps_md added)
 AtomicAI/dim_reduction/ts_lpp.py
 AtomicAI/dim_reduction/tslpp.py
 AtomicAI/dim_reduction/tslpp_dim_red_mpi.py
@@ -80,11 +59,6 @@ AtomicAI/io/read.py
 AtomicAI/io/read_cq.py
 AtomicAI/io/write_cq.py
 AtomicAI/io/write_data_in_py.py
-<<<<<<< HEAD
-AtomicAI/tools/__init__.py
-AtomicAI/tools/angle_between_three_points.py
-AtomicAI/tools/angles_in_tetrahedron.py
-=======
 AtomicAI/mlff/LassoLarCV.py
 AtomicAI/mlff/__init__.py
 AtomicAI/mlff/mlff.py
@@ -101,30 +75,22 @@ AtomicAI/tools/angles_in_tetrahedron.py
 AtomicAI/tools/ase_traj2xyz_traj.py
 AtomicAI/tools/build_interface.py
 AtomicAI/tools/build_interface1.py
->>>>>>> 5bcf4f0 (plot_lammps_md added)
 AtomicAI/tools/cif2cq.py
 AtomicAI/tools/cq2cif.py
 AtomicAI/tools/cq2vasp.py
 AtomicAI/tools/define_mirror_cubic.py
 AtomicAI/tools/labels.py
-<<<<<<< HEAD
-=======
 AtomicAI/tools/lammps_npt.py
 AtomicAI/tools/lammps_nvt.py
 AtomicAI/tools/lmptraj2vasp.py
 AtomicAI/tools/plot_deepPot_accuracy.py
 AtomicAI/tools/plot_lammps_md.py
 AtomicAI/tools/plot_vasp_md.py
->>>>>>> 5bcf4f0 (plot_lammps_md added)
 AtomicAI/tools/plt_md_stats.py
 AtomicAI/tools/rdf.py
 AtomicAI/tools/select_snapshots.py
 AtomicAI/tools/split_train_test_val_sets.py
 AtomicAI/tools/structure_analysis.py
-<<<<<<< HEAD
-AtomicAI/tools/vasp2cif.py
-AtomicAI/tools/vasp2cq.py
-=======
 AtomicAI/tools/submission_file.py
 AtomicAI/tools/supercell.py
 AtomicAI/tools/unwrapped.py
@@ -132,7 +98,6 @@ AtomicAI/tools/vasp2cif.py
 AtomicAI/tools/vasp2cq.py
 AtomicAI/tools/vasp2lmp_data.py
 AtomicAI/tools/vasp2vasp.py
->>>>>>> 5bcf4f0 (plot_lammps_md added)
 AtomicAI/tools/vasp2xyz.py
 AtomicAI/tools/xyz2vasp.py
 tests/__init__.py
