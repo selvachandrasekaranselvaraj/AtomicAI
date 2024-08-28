@@ -39,7 +39,10 @@ def define_eta(eta_range,num):
 
     for _ in range(eta_num - 1):
         eta = np.append(eta, np.array([(R1 / R0) ** (1 / eta_num) * eta[-1]]))
+<<<<<<< HEAD
 
+=======
+>>>>>>> 5bcf4f0 (plot_lammps_md added)
     return eta
 
 def define_mirror_cubic(position, cell, Rc):

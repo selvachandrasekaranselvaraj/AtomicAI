@@ -1,5 +1,9 @@
 from AtomicAI.descriptors.laaf import AverageFingerprintCalculator
+<<<<<<< HEAD
 from AtomicAI.descriptors.force_descriptor import force_descriptor
+=======
+from AtomicAI.descriptors.generate_force_descriptor import force_descriptor
+>>>>>>> 5bcf4f0 (plot_lammps_md added)
 from AtomicAI.data.descriptor_cutoff import descriptor_cutoff
 from AtomicAI.tools.select_snapshots import select_snapshots
 import sys, os

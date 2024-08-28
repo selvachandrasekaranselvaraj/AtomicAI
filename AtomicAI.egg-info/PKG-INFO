@@ -15,7 +15,11 @@ Project-URL: Scholar, https://scholar.google.com/citations?user=vNozeNYAAAAJ&hl=
 Classifier: Intended Audience :: Science/Research
 Classifier: Programming Language :: Python :: 3.9
 Classifier: License :: OSI Approved :: GNU General Public License v3 (GPLv3)
+<<<<<<< HEAD
 Requires-Python: >=3.9
+=======
+Requires-Python: >=3.7
+>>>>>>> 5bcf4f0 (plot_lammps_md added)
 Description-Content-Type: text/markdown
 License-File: LICENSE.md
 

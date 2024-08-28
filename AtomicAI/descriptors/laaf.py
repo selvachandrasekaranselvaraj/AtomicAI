@@ -10,7 +10,10 @@ import ase.io
 import numpy as np
 from numpy import exp
 from numba import jit
+<<<<<<< HEAD
 #from tqdm.auto import tqdm
+=======
+>>>>>>> 5bcf4f0 (plot_lammps_md added)
 from AtomicAI.descriptors.acsf import ACSF
 from AtomicAI.descriptors.mbsf import MBSF
 from dscribe.descriptors import SOAP

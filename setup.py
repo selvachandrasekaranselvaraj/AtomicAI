@@ -9,10 +9,23 @@ with open("README.md", "r", encoding="utf-8") as fh:
     long_description = fh.read()
 
 install_requires = [
+<<<<<<< HEAD
         'pip   >= 22.1.2',
         'wheel >= 0.37.1',
         #'twine >= 4.0.1',
         #'ase   >= 3.22.1',
+=======
+        #'pip   >= 22.1.2',
+        #'wheel >= 0.37.1',
+        #'twine >= 4.0.1',
+        #'ase   >= 3.22.1',
+        #'lmfit >= 1.2.2',
+        #'scikit-learn >=24.1.1',
+        #'plotly >= 5.22.0',
+        #'pandas >= 2.2.2',
+        #'kaleido >= 0.2.1',
+
+>>>>>>> 5bcf4f0 (plot_lammps_md added)
         ]
 
 setup(
@@ -46,26 +59,57 @@ setup(
         "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
 
     ],
+<<<<<<< HEAD
     python_requires='>=3.9',
+=======
+    python_requires='>=3.7',
+>>>>>>> 5bcf4f0 (plot_lammps_md added)
     install_requires= install_requires, #open('requirements.txt').read(), 
     entry_points={'console_scripts': [
         'cq2vasp=AtomicAI.tools.cq2vasp:cq2vasp',
         'xyz2vasp=AtomicAI.tools.xyz2vasp:xyz2vasp',
         'vasp2cif=AtomicAI.tools.vasp2cif:vasp2cif',
+<<<<<<< HEAD
         'vasp2xyz=AtomicAI.tools.vasp2xyz:vasp2xyz',
         'vasp2cq=AtomicAI.tools.vasp2cq:vasp2cq',
         'cif2cq=AtomicAI.tools.cif2cq:cif2cq',
         'cq2cif=AtomicAI.tools.cq2cif:cq2cif',
+=======
+        'vasp2vasp=AtomicAI.tools.vasp2vasp:vasp2vasp',
+        'vasp2xyz=AtomicAI.tools.vasp2xyz:vasp2xyz',
+        'vasp2cq=AtomicAI.tools.vasp2cq:vasp2cq',
+        'vasp2lmp_data=AtomicAI.tools.vasp2lmp_data:vasp2lmp_data',
+        'lmp2vasp=AtomicAI.tools.lmptraj2vasp:lmptraj2vasp',
+        'cif2cq=AtomicAI.tools.cif2cq:cif2cq',
+        'cq2cif=AtomicAI.tools.cq2cif:cq2cif',
+        'supercell=AtomicAI.tools.supercell:supercell',
+        'ase_traj2xyz_traj=AtomicAI.tools.ase_traj2xyz_traj:ase_traj2xyz_traj',
+        'lammps_npt_inputs=AtomicAI.tools.lammps_npt:generate_lammps_npt_inputs',
+        'lammps_nvt_inputs=AtomicAI.tools.lammps_nvt:generate_lammps_nvt_inputs',
+        'wrap2unwrap=AtomicAI.tools.unwrapped:unwrapped',
+        'build_interface=AtomicAI.tools.build_interface:build_interface',
+>>>>>>> 5bcf4f0 (plot_lammps_md added)
 
         'rdf=AtomicAI.tools.rdf:RDF',
         'structure_analysis=AtomicAI.tools.structure_analysis:structure_analysis',
 
         'plot_rdf_data=AtomicAI.plots.plot_rdf_data:read_RDF_data',
+<<<<<<< HEAD
         'plot_md_stats=AtomicAI.plots.plot_md_stats:plot_md_stats',
+=======
+        'plot_md_stats=AtomicAI.tools.plt_md_stats:plt_md_stats',
+        'plot_vasp_md=AtomicAI.tools.plot_vasp_md:plot_vasp_md',
+        'plot_lammps_md=AtomicAI.tools.plot_lammps_md:plot_lammps_md',
+        'plot_deepPot_accuracy=AtomicAI.tools.plot_deepPot_accuracy:plot_deepPot_accuracy',
+>>>>>>> 5bcf4f0 (plot_lammps_md added)
         'plot_clusters=AtomicAI.plots.plot_clusters:plot_clusters',
 
         'laaf=AtomicAI.descriptors.calculate_laaf_des:calculate_laaf_des',
         'generate_descriptors=AtomicAI.descriptors.calculate_descriptors:calculate_descriptors',
+<<<<<<< HEAD
+=======
+        'generate_force_descriptors=AtomicAI.descriptors.generate_force_descriptor:generate_force_descriptors',
+>>>>>>> 5bcf4f0 (plot_lammps_md added)
 
         'pca=AtomicAI.dim_reduction.pca:pca',
         'lpp=AtomicAI.dim_reduction.lpp:lpp',

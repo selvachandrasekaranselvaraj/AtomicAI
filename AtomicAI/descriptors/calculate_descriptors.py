@@ -1,14 +1,21 @@
 from AtomicAI.descriptors.laaf import AverageFingerprintCalculator
+<<<<<<< HEAD
 from AtomicAI.descriptors.force_descriptor import force_descriptor
+=======
+>>>>>>> 5bcf4f0 (plot_lammps_md added)
 from AtomicAI.data.data_lib import descriptor_cutoff
 from AtomicAI.data.data_lib import no_mpi_processors
 from AtomicAI.tools.select_snapshots import select_snapshots
 import sys, os
 import time, multiprocessing
+<<<<<<< HEAD
 import ase.io
 import numpy as np
 import pandas as pd
 #from mpi4py import MPI
+=======
+import numpy as np
+>>>>>>> 5bcf4f0 (plot_lammps_md added)
 
 
 def initialize_variables():
@@ -30,6 +37,14 @@ def initialize_variables():
     symbols_type = list(set(symbols))
 
     symbols = np.array(symbols)
+<<<<<<< HEAD
+=======
+    # Calculate force descriptors 
+    #force_descriptor(frames)
+
+
+
+>>>>>>> 5bcf4f0 (plot_lammps_md added)
     selected_indices = []
     target_elements = {}
     for sy_no, symbol in enumerate(symbols_type):
@@ -40,8 +55,11 @@ def initialize_variables():
         selected_indices.append(indices)
         #print(selected_indices)
 
+<<<<<<< HEAD
     # Calculate force descriptors 
     #force_descriptor(frames)
+=======
+>>>>>>> 5bcf4f0 (plot_lammps_md added)
 
     # Calculate laaf descriptors 
     descriptors_type = ['ACSF_G2', 'ACSF_G2G4', 'SOAP']
