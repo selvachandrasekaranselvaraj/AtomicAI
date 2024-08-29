@@ -1,5 +1,6 @@
 import re, os, sys
 from ase.io import lammpsdata
+from AtomicAI.tools.submission_file import job_submit
 
 def get_atom_style(data_file):
     with open(data_file, 'r') as dfile:

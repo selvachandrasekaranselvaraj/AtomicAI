@@ -84,7 +84,6 @@ mpirun -np $SLURM_NTASKS ~/myopt/lammps/src/lmp_mpi < in.lammps
     else:
         print(f"{hostname} is the hostname. So, no sub.sh file created")
         exit
-
     
     return
 
