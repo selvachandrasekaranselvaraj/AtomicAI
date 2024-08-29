@@ -1,4 +1,4 @@
-import re, os
+import re, os, sys
 import numpy as np
 from ase.io import lammpsdata
 from AtomicAI.tools.submission_file import job_submit
@@ -36,7 +36,7 @@ def get_supercell_size(data):
 def generate_lammps_npt_inputs():
     try:
         temp_init = sys.argv[1]
-        temp_final = sys.argv[1]
+        temp_final = sys.argv[2]
     except:
         print("Input error.")
         print("lammps_nvt_input init_temp final_temp")
@@ -165,12 +165,10 @@ write_data minimized_structure.dat
         exit
 
     
-
     print("LAMMPS input file generated successfully.")
     job_name = 'npt'+''.join([s[0] for s in get_elements(data_file)])
     
     job_submit(job_name)
-
     # Check all input files
     # Define the directory to check
     directory = "./"
