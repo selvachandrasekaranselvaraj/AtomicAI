@@ -1,8 +1,7 @@
 import re, os
-from ase.io import lammpsdata
 import numpy as np
+from ase.io import lammpsdata
 from AtomicAI.tools.submission_file import job_submit
-from lammps_input_content import lammps_cont
 
 def get_elements(data_file):
     data = lammpsdata.read_lammps_data(data_file)
