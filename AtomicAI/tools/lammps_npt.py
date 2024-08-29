@@ -35,8 +35,8 @@ def get_supercell_size(data):
 
 def generate_lammps_npt_inputs():
     try:
-        temp_init = sys.argv[1]
-        temp_final = sys.argv[2]
+        temp_init = float(sys.argv[1])
+        temp_final = float(sys.argv[2])
     except:
         print("Input error.")
         print("lammps_nvt_input init_temp final_temp")

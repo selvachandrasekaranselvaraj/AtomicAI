@@ -25,7 +25,7 @@ def get_elements(data_file):
 
 def generate_lammps_nvt_inputs():
     try:
-        temp = sys.argv[1]
+        temp = float(sys.argv[1])
     except:
         print("Input error.")
         print("lammps_nvt_input temprature")
