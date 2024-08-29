@@ -79,7 +79,6 @@ setup(
         'plot_md_stats=AtomicAI.tools.plt_md_stats:plt_md_stats',
         'plot_vasp_md=AtomicAI.tools.plot_vasp_md:plot_vasp_md',
         'plot_lammps_md=AtomicAI.tools.plot_lammps_md:plot_lammps_md',
-        'plot_deepPot_accuracy=AtomicAI.tools.plot_deepPot_accuracy:plot_deepPot_accuracy',
         'plot_clusters=AtomicAI.plots.plot_clusters:plot_clusters',
 
         'laaf=AtomicAI.descriptors.calculate_laaf_des:calculate_laaf_des',
