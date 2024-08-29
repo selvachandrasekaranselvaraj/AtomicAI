@@ -218,7 +218,7 @@ def decorate_borders(fig, font_size, n_rows, n_columns, y_ranges, y_labels, show
     return fig
 
 # Function to plot data using Plotly
-def plotly_plot(n_files, df, y_labels, fig, file_n, file_name, y_ranges):
+def plotly_plot(n_files, df, y_labels, fig, file_n, file_name, y_ranges, legend):
     """
     Creates a plotly figure with subplots based on the data provided.
 
@@ -285,7 +285,7 @@ def plotly_plot(n_files, df, y_labels, fig, file_n, file_name, y_ranges):
                 break
             y_label = y_labels[i_plot]
             y = np.array(df[y_label].astype(float))[::interval]
-            showlegend = i_plot == 0
+            showlegend = i_plot == 0 and legend
             fig.add_trace(
                 go.Scatter(
                     x=x[skip_initial:],
@@ -328,6 +328,27 @@ def find_word_in_file(file_path, word_to_find):
         line_numbers = [-3]
     return line_numbers, tot_lines
 
+import re
+
+def determine_ensemble(input_file):
+    npt_pattern = r'fix\s+\S+\s+\S+\s+npt'
+    nvt_pattern = r'fix\s+\S+\s+\S+\s+(nvt|temp/berendsen|temp/rescale|langevin)'
+    nve_pattern = r'fix\s+\S+\s+\S+\s+nve'
+    
+    ensembles = []
+    
+    with open(input_file, 'r') as f:
+        content = f.read()
+        
+        if re.search(npt_pattern, content, re.IGNORECASE):
+            ensembles.append('NPT')
+        if re.search(nvt_pattern, content, re.IGNORECASE):
+            ensembles.append('NVT')
+        if re.search(nve_pattern, content, re.IGNORECASE):
+            ensembles.append('NVE')
+    
+    return ensembles
+
 # Function to read and process the LAMMPS MD data file
 def read_input_file(file_path, starting_word, ending_word):
     """
@@ -361,6 +382,12 @@ def read_input_file(file_path, starting_word, ending_word):
     
     y_labels = data[0][1:len(data[0])-1]
     y_ranges = [max(np.array(df[key].astype(float))) for key in y_labels]
+
+    ensembles = determine_ensemble(file_path)
+    if 'NVT' in ensembles:
+        y_labels = ['Temp', 'PotEng', 'KinEng', 'Press']
+    if 'NPT' in ensembles:
+        y_labels = ['Temp', 'PotEng', 'Press', 'Volume',]
     
     return df, y_labels, y_ranges
 
@@ -384,6 +411,8 @@ def plot_lammps_md():
     fig = None
     y_ranges = []
 
+    legend = 1 > len(filenames)
+
     for file_n, file_ in enumerate(filenames):
         starting_word = 'Per MPI rank memory'
         ending_word = 'Loop time of'
@@ -398,7 +427,7 @@ def plot_lammps_md():
                     y_ranges[i_key] = max(np.array(df[key].astype(float)))
 
         n_files = len(filenames)
-        fig = plotly_plot(n_files, df, y_labels, fig, file_n, file_, y_ranges)
+        fig = plotly_plot(n_files, df, y_labels, fig, file_n, file_, y_ranges, legend)
 
     print(f"md_plots.png is writing...")
     fig.write_html('md_plots.html')
