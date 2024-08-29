@@ -380,16 +380,16 @@ def read_input_file(file_path, starting_word, ending_word):
         df_ = pd.DataFrame(data[1:-2], columns=data[0])
         df = pd.concat([df, df_.astype(float)])
     
-    y_labels = data[0][1:len(data[0])-1]
-    y_ranges = [max(np.array(df[key].astype(float))) for key in y_labels]
+    df = df.iloc[int(len(df) * 0.005):]
+    #y_labels = data[0][1:len(data[0])-1]
 
     ensembles = determine_ensemble(file_path)
     if 'NVT' in ensembles:
         y_labels = ['Temp', 'PotEng', 'KinEng', 'Press']
     if 'NPT' in ensembles:
         y_labels = ['Temp', 'PotEng', 'Press', 'Cella', 'Cellb',  'Cellc']
-    
-    return df.iloc[int(len(df) * 0.005):], y_labels, y_ranges
+    y_ranges = [max(np.array(df[key].astype(float))) for key in y_labels]
+    return df, y_labels, y_ranges
 
 # Main function to generate plots from LAMMPS MD data files
 def plot_lammps_md():
@@ -410,8 +410,6 @@ def plot_lammps_md():
     #filenames = ['log.lammps']
     fig = None
     y_ranges = []
-
-    legend = 1 > len(filenames)
 
     for file_n, file_ in enumerate(filenames):
         starting_word = 'Per MPI rank memory'
