@@ -389,7 +389,7 @@ def read_input_file(file_path, starting_word, ending_word):
     if 'NPT' in ensembles:
         y_labels = ['Temp', 'PotEng', 'Press', 'Volume',]
     
-    return df, y_labels, y_ranges
+    return df.iloc[int(len(df) * 0.01):], y_labels, y_ranges
 
 # Main function to generate plots from LAMMPS MD data files
 def plot_lammps_md():
