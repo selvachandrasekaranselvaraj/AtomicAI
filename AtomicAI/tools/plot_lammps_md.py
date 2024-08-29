@@ -387,7 +387,7 @@ def read_input_file(file_path, starting_word, ending_word):
     if 'NVT' in ensembles:
         y_labels = ['Temp', 'PotEng', 'KinEng', 'Press']
     if 'NPT' in ensembles:
-        y_labels = ['Temp', 'PotEng', 'Press', 'Volume',]
+        y_labels = ['Temp', 'PotEng', 'Press', 'Cella', 'Cellb',  'Cellc']
     
     return df.iloc[int(len(df) * 0.005):], y_labels, y_ranges
 
