@@ -54,7 +54,7 @@ variable dump_file2 string "dump.lmp"
 variable nx equal 1
 variable ny equal 1
 variable nz equal 1
-variable run_1 equal 3000000 #NVT run
+variable run_1 equal 2000000 #NVT run
 variable temp_init equal {temp}
 variable temp_final equal {temp}
 variable timestep equal 0.001
@@ -73,7 +73,7 @@ replicate       ${{nx}} ${{ny}} ${{nz}}
 pair_style	deepmd    ${{pair_style_type}}
 pair_coeff	 * * 
 
-{kspace}
+#{kspace}
 #dielectric      4.0
 
 neighbor        ${{neighbor_distance}} bin
@@ -110,42 +110,17 @@ write_data after_nvt_.dat
     
     print("LAMMPS input file generated successfully.")
     
-    job_name = 'nvt'+''.join([s[0] for s in get_elements(data_file)])
+    print("LAMMPS input file generated successfully.")
+    job_name = 'npt'+''.join([s[0] for s in get_elements(data_file)])
     
-    sub_file_content = f"""#!/bin/bash
-#PBS -l select=1:ncpus=128:mpiprocs=128
-#PBS -A LTC
-#PBS -l walltime=72:00:00
-#PBS -N {job_name}
-##PBS -o vasp.out
-#PBS -j n
-#PBS -m e
-
-cd $PBS_O_WORKDIR
-NNODES=`wc -l < $PBS_NODEFILE`
-echo "NNODES=" $NNODES
-
-module add gcc/13.2.0 openmpi/4.1.6-gcc-13.2.0 aocl/4.1.0-gcc-13.1.0
-export PATH=/soft/software/custom-built/vasp/5.4.4/bin:$PATH
-export UCX_NET_DEVICES=mlx5_0:1
-
-#mpirun -np $NNODES vasp_std
-#autopsy dump.lmp 128
-mpirun -np $NNODES lmp_mpi -in in.lammps
-"""
-    
-    # Save the sub_file_content to a file
-    with open('improv.sh', 'w') as file:
-        file.write(sub_file_content)
-    
-    print("improv.sh file generated successfully.")
+    job_submit(job_name)
 
     # Check all input files
     # Define the directory to check
     directory = "./"
     
     # List of files to check
-    files_to_check = ['minimized_structure.dat', 'mlpot.dp', 'in.lammps', 'improv.sh']
+    files_to_check = ['minimized_structure.dat', 'mlpot.dp', 'in.lammps', 'sub.sh']
     
     # Check for the existence of each file
     for filename in files_to_check:
