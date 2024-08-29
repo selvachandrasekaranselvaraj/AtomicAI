@@ -218,7 +218,7 @@ def decorate_borders(fig, font_size, n_rows, n_columns, y_ranges, y_labels, show
     return fig
 
 # Function to plot data using Plotly
-def plotly_plot(n_files, df, y_labels, fig, file_n, file_name, y_ranges, legend):
+def plotly_plot(n_files, df, y_labels, fig, file_n, file_name, y_ranges):
     """
     Creates a plotly figure with subplots based on the data provided.
 
@@ -285,7 +285,7 @@ def plotly_plot(n_files, df, y_labels, fig, file_n, file_name, y_ranges, legend)
                 break
             y_label = y_labels[i_plot]
             y = np.array(df[y_label].astype(float))[::interval]
-            showlegend = i_plot == 0 and legend
+            showlegend = i_plot == 0
             fig.add_trace(
                 go.Scatter(
                     x=x[skip_initial:],
@@ -427,7 +427,7 @@ def plot_lammps_md():
                     y_ranges[i_key] = max(np.array(df[key].astype(float)))
 
         n_files = len(filenames)
-        fig = plotly_plot(n_files, df, y_labels, fig, file_n, file_, y_ranges, legend)
+        fig = plotly_plot(n_files, df, y_labels, fig, file_n, file_, y_ranges)
 
     print(f"md_plots.png is writing...")
     fig.write_html('md_plots.html')
