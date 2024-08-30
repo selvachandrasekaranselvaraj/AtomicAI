@@ -260,7 +260,8 @@ def plotly_plot(n_files, df, y_labels, fig, file_n, file_name, y_ranges):
     try:
         x = np.array(df['Time']).astype(float) * 1e-12 / 1e-9  # time in ns
     except KeyError:
-        x = np.array(df['Step']).astype(float) * 1e-15 / 1e-9  # time in ns
+        #x = np.array(df['Step']).astype(float) * 1e-15 / 1e-9  # time in ns
+        x = np.arange(1, len(df['Step'])) * 1e-15 / 1e-9  # time in ns
 
     if max(x) < 0.1:
         time_unit = 'ps'
