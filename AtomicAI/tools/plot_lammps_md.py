@@ -1,4 +1,4 @@
-import os
+import os, mmap, re, subprocess
 import sys
 import pandas as pd
 import numpy as np
@@ -123,15 +123,15 @@ def decorate_borders(fig, font_size, n_rows, n_columns, y_ranges, y_labels, show
     y_axis_details_exp['tickformat'] = ".0e"
 
     # Adjust legend position
-    legend_fix_y = 1 if n_rows == 1 else (1 / n_rows) * 0.3
+    #legend_fix_y = 1 if n_rows == 1 else (1 / n_rows) * 0.3
 
     
 
     # Define a dictionary to map old y-axis labels to new ones
     label_mapping = {
         'Temp': 'T(K)',
-        'Press': 'P(bar)',
-        'PotEng': 'PE(eV)',
+        'Press': 'P(bar/atom)',
+        'PotEng': 'PE(eV/atom)',
         'KinEng': 'KE(eV)',
         'Volume': 'V(Å<sup>3</sup>)',
         'Cella': 'a(Å)',
@@ -150,7 +150,13 @@ def decorate_borders(fig, font_size, n_rows, n_columns, y_ranges, y_labels, show
         # Update y_ranges if necessary
         if y_label == 'Volume':
             y_ranges[i_axis] += y_ranges[i_axis] * 0.02
-        
+        if y_label == 'PotEng':
+            y_ranges[i_axis] -= y_ranges[i_axis] * 0.006
+        if y_label == 'Press':
+            y_ranges[i_axis] += y_ranges[i_axis] * 0.1
+        if y_label == 'Temp':
+            y_ranges[i_axis] += y_ranges[i_axis] * 0.02
+
         # Append the modified label
         modified_y_labels.append(modified_y_label)
         yaxis_detail = y_axis_details        
@@ -218,7 +224,7 @@ def decorate_borders(fig, font_size, n_rows, n_columns, y_ranges, y_labels, show
     return fig
 
 # Function to plot data using Plotly
-def plotly_plot(n_files, df, y_labels, fig, file_n, file_name, y_ranges):
+def plotly_plot(n_files, df, y_labels, fig, file_n, file_name, y_ranges, legend_grand):
     """
     Creates a plotly figure with subplots based on the data provided.
 
@@ -238,11 +244,11 @@ def plotly_plot(n_files, df, y_labels, fig, file_n, file_name, y_ranges):
     show_flabels = (n_files == file_n + 1)
     n_rows, n_columns = n_col_row(len(y_labels))
     if n_columns >= 3:
-        font_size = 17
+        font_size = 20
         horizontal_spacing = 0.10
         vertical_spacing = 0.06
     else:
-        font_size = 18
+        font_size = 21
         horizontal_spacing = 0.15
         vertical_spacing = 0.04
     
@@ -285,8 +291,11 @@ def plotly_plot(n_files, df, y_labels, fig, file_n, file_name, y_ranges):
             if i_plot >= len(y_labels):
                 break
             y_label = y_labels[i_plot]
-            y = np.array(df[y_label].astype(float))[::interval]
-            showlegend = i_plot == 0
+            y = np.array(df[y_label].astype(float))[::interval] 
+            if i_plot == 0 and legend_grand:
+                showlegend = True
+            else:
+                showlegend = False
             fig.add_trace(
                 go.Scatter(
                     x=x[skip_initial:],
@@ -329,15 +338,21 @@ def find_word_in_file(file_path, word_to_find):
         line_numbers = [-3]
     return line_numbers, tot_lines
 
-import re
-
 def determine_ensemble(input_file):
     npt_pattern = r'fix\s+\S+\s+\S+\s+npt'
     nvt_pattern = r'fix\s+\S+\s+\S+\s+(nvt|temp/berendsen|temp/rescale|langevin)'
     nve_pattern = r'fix\s+\S+\s+\S+\s+nve'
-    
-    ensembles = []
-    
+    result = subprocess.run(['grep', 'atoms', input_file], capture_output=True, text=True, check=True)
+    lines = result.stdout.strip().split('\n')
+    n_atoms_ = []
+    for line in lines:
+        try:
+            n_atoms_.append(int(line.split()[0]))
+        except:
+            pass
+            
+
+    ensembles = [] 
     with open(input_file, 'r') as f:
         content = f.read()
         
@@ -347,8 +362,9 @@ def determine_ensemble(input_file):
             ensembles.append('NVT')
         if re.search(nve_pattern, content, re.IGNORECASE):
             ensembles.append('NVE')
+
     
-    return ensembles
+    return ensembles, max(n_atoms_)
 
 # Function to read and process the LAMMPS MD data file
 def read_input_file(file_path, starting_word, ending_word):
@@ -380,11 +396,13 @@ def read_input_file(file_path, starting_word, ending_word):
         data = [line.split() for line in data_[i_l:f_l - 1]]
         df_ = pd.DataFrame(data[1:-2], columns=data[0])
         df = pd.concat([df, df_.astype(float)])
-    
+
+    ensembles, n_atoms = determine_ensemble(file_path)
+    df['PotEng'] /= n_atoms
+    df['Press'] /= n_atoms
     df = df.iloc[int(len(df) * 0.005):]
     #y_labels = data[0][1:len(data[0])-1]
 
-    ensembles = determine_ensemble(file_path)
     if 'NVT' in ensembles:
         y_labels = ['Temp', 'PotEng', 'KinEng', 'Press']
     if 'NPT' in ensembles:
@@ -409,6 +427,7 @@ def plot_lammps_md():
 
     #filenames = ['340.log']#, '360.log', '380.log', '400.log']
     #filenames = ['log.lammps']
+    legend_grand = len(filenames) > 1 
     fig = None
     y_ranges = []
 
@@ -417,6 +436,7 @@ def plot_lammps_md():
         ending_word = 'Loop time of'
 
         df, y_labels, file_y_ranges = read_input_file(file_, starting_word, ending_word)
+        
 
         if file_n == 0:
             y_ranges = file_y_ranges
@@ -426,7 +446,7 @@ def plot_lammps_md():
                     y_ranges[i_key] = max(np.array(df[key].astype(float)))
 
         n_files = len(filenames)
-        fig = plotly_plot(n_files, df, y_labels, fig, file_n, file_, y_ranges)
+        fig = plotly_plot(n_files, df, y_labels, fig, file_n, file_, y_ranges, legend_grand)
 
     print(f"md_plots.png is writing...")
     fig.write_html('md_plots.html')

@@ -1,22 +1,16 @@
 #!/usr/bin/env python3.10
-<<<<<<< HEAD
 from AtomicAI.io.read import read
 import os, sys
 import ase.io
-=======
-import os, sys
 from ase.io import read, write
 import ase.io.vasp as ase_vasp
 import numpy as np
 
-
->>>>>>> 5bcf4f0 (plot_lammps_md added)
 def vasp2xyz():
     try:
         input_file = sys.argv[1]
     except:
         print("Input error!!!!")
-<<<<<<< HEAD
         print("Usage: \"vasp2cif vasp_file_name with .vasp extension\"")
         print()
         exit()
@@ -24,11 +18,7 @@ def vasp2xyz():
     data = ase.io.read(input_file) 
     out_file = input_file[:-4]+'xyz'
     ase.io.write(out_file, data, format='xyz')
-    return 
-=======
-        print("Usage: \"vasp2xyz vasp_file_name \"")
-        print()
-        exit()
+
     def updatepositions(atoms):
         cell = atoms.cell
         # print('Updating positions. Cell is:', cell)
@@ -58,5 +48,3 @@ def vasp2xyz():
         print('No file format matches!!!')
         exit()
     return
-
->>>>>>> 5bcf4f0 (plot_lammps_md added)
