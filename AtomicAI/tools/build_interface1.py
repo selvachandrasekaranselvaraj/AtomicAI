@@ -138,4 +138,3 @@ def build_interface():
                 print(f"{filename} is done")
     log.close()          
     return
-

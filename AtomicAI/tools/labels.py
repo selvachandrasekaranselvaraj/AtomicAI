@@ -19,7 +19,7 @@ r_nb = 3.00
 verysmall = 0.00001
 ###############################################################
 def structure_analysis():
-    bond_lengths, angles, coord_nos, edge_dists, std, std_angle = [], [], [], [], [], []
+    bond_lengths, angles, coord_nos, edge_dists = [], [], [], []
     dist_from_cell_center = []
     frames, symbols = select_snapshots()
     symbols_type = list(set(symbols))
@@ -78,32 +78,7 @@ def structure_analysis():
             #ang_max.append(max(ang))
             #angle_mean = np.append(angle_mean, ang_mean)
     bond_lengths, angles, coord_nos, edge_dists = np.array(bond_lengths), np.array(angles), np.array(coord_nos), np.array(edge_dists)
-    #std = np.array(std)
-    #std_of_dijs = np.array([np.std(dij) for dij in bond_lengths])
-    #std_of_angles = np.array([np.std(angle) for angle in angles])
-    #std_of_edge_dijs = np.array([np.std(e_dij) for e_dij in edge_dists])
-    #g_std = std_of_dijs + std_of_angles + std_of_edge_dijs
-    #m_std = np.zeros(len(g_std)) #modified std
-    #sorted_coord_nos = Counter(coord_nos)
-    #coord_nos1 = []
-    #for no in np.array([4, 3, 5, 2]):
-    #    if no in sorted_coord_nos.keys(): 
-    #        coord_nos1.append(no)
-    #for coord_no in coord_nos1:
-    #    std[np.where((np.array(coord_nos) == coord_no))] = max(std) + (max(std)-min(std))/(coord_no*20)
-    #    tof = [coord_nos == coord_no] # True or False
-    #    local_list = g_std[tof]
-    #    local_list1 = (local_list - min(local_list))
-    #    if coord_no == 4:
-    #        local_list2 = local_list1/max(local_list1)*0.5 + 1
-    #    else:
-    #        local_list2 = local_list1/max(local_list1)*min(local_list2)
-    #    m_std[tof] = local_list2
-        #print(coord_no, min(m_std), max(m_std))
 
-
-    #data_names = ['bond_lengths', 'angles', 'coord_nos', 'edge_distance', 'std', 'm_std', 'Distance_from_vacancy']
-    #data_values = [list(bond_lengths), list(angles), list(coord_nos), list(edge_dists), list(std), list(m_std), list(dist_from_cell_center)]
     data_names = ['bond_lengths', 'angles', 'coord_nos', 'edge_distance', 'Distance_from_vacancy']
     data_values = [list(bond_lengths), list(angles), list(coord_nos), list(edge_dists), list(dist_from_cell_center)]
     out_directory = './sf/'
@@ -141,4 +116,4 @@ def structure_analysis():
     #print(list(np.round(np.array(std),1)))
     #plt.show()
 
-    return 
+    return

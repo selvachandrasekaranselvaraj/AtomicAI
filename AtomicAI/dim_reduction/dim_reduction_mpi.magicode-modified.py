@@ -15,6 +15,7 @@ import logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 def dim_reduction_mpi():
+    logging.info('Starting dimension reduction using MPI')
     try:
         pool = multiprocessing.Pool(no_mpi_processors)
         jobs = []
@@ -33,4 +34,5 @@ def dim_reduction_mpi():
     finally:
         pool.close()
         pool.join()
+    logging.info('Dimension reduction process completed')
     return
