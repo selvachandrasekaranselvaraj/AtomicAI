@@ -1,44 +1,102 @@
 # AtomicAI
-Python-based code for machine learning models building to use in the field of computational materials science. It can be used for machine learning force field atomic structure classifications based on temperature, defects, phase, and so on.   
-## Analysis
-Processing and visualization of atomic coordinates of different file formats such as CIF, VASP, XYZ, Conquest, etc.
-AtomicAI uses 'ase' code for reading and writing structure files.
-# Ploting LAMMPS log file
 
-## Data processing
-Classification of atoms in a trajectory file.
+AtomicAI is a Python-based package for building machine learning models in the field of computational materials science. It can be used for machine learning force field generation, atomic structure classifications based on temperature, defects, phase, and more.
 
-## Machine learning
-Featurization of atomic structures and Reduction feature dimensions
+## Features
 
-## Clustering and visualization of data
-Use various clustering methods and plot the data
+### Analysis
+- Processing and visualization of atomic coordinates in various file formats (CIF, VASP, XYZ, Conquest, etc.)
+- Utilizes 'ase' library for reading and writing structure files
 
-# Installation
+### Data Processing
+- Classification of atoms in trajectory files
+- Structure analysis tools
+
+### Machine Learning
+- Featurization of atomic structures
+- Dimension reduction techniques (PCA, LPP, TsLPP, TsNE, UMAP)
+- Machine Learning Force Field (MLFF) generation
+
+### Clustering and Visualization
+- Various clustering methods
+- Data plotting and visualization tools
+
+## Installation
+
+Install AtomicAI using pip:
+
+```
 pip install AtomicAI
-<<<<<<< HEAD
-## Team
-Selva Chandrasekaran Selvaraj
-=======
->>>>>>> 5bcf4f0 (plot_lammps_md added)
+```
 
-# AtomicAI (in Tamil)
-இயந்திர கற்றல் மாதிரிகளை கணக்கீடு மற்றும் கோட்பாட்டுப் பொருட்கள் அறிவியல் துறையில் உருவாக்குவது. வெப்பநிலை, மாசுட்டல்(குறைபாடுகள்), மற்றும் பலவற்றின் அடிப்படையில் வகைப்படுத்துவதற்கும் இதை பயன்படுத்தப்படலாம்.
-## பகுப்பாய்வு
-CIF, VASP, XYZ, Conquest போன்ற பல்வேறு கோப்பு வடிவங்களின் செயலாக்கம் மற்றும் காட்சிப்படுத்தல்.
-AtomicAI அமைப்புக் கோப்புகளைப் படிக்கவும் எழுதவும் 'ase' குறியீட்டைப் பயன்படுத்துகிறது.
+## Requirements
 
-## தகவல் செயல்முறை
-அணுக்களின் வகைப்பாடு.
+AtomicAI requires Python 3.7 or higher. Other dependencies will be automatically installed during the pip installation process.
 
-## இயந்திர வழி கற்றல்
-அணு கட்டமைப்புகள் மற்றும் குறைப்பப் பரிமாணங்களின் சிறப்பம்சங்கள்
+## Usage
 
-## தரவுகளின் கிளஸ்டரிங் மற்றும் காட்சிப்படுத்தல்
-<<<<<<< HEAD
-பல்வேறு கிளஸ்டரிங் முறைகளைப் பயன்படுத்தவும் மற்றும் தரவைத் திட்டமிடவும்
-## குழு
-செல்வ சந்திரசேகரன் செல்வராஜ்
-=======
-பல்வேறு கிளஸ்டரிங் முறைகளைப் பயன்படுத்தவும் மற்றும் தரவைத் திட்டமிடவும்
->>>>>>> 5bcf4f0 (plot_lammps_md added)
+AtomicAI provides several command-line tools for various tasks. Here are some examples:
+
+### File Conversion
+- `cq2vasp`: Convert Conquest files to VASP format
+- `xyz2vasp`: Convert XYZ files to VASP format
+- `vasp2cif`: Convert VASP files to CIF format
+- `vasp2xyz`: Convert VASP files to XYZ format
+- `vasp2lmp_data`: Convert VASP files to LAMMPS data format
+
+### Structure Manipulation
+- `supercell`: Create supercell structures
+- `build_interface`: Build interfaces between materials
+
+### Analysis
+- `rdf`: Calculate Radial Distribution Function
+- `structure_analysis`: Perform various structural analyses
+
+### Visualization
+- `plot_rdf_data`: Plot RDF data
+- `plot_md_stats`: Plot molecular dynamics statistics
+- `plot_vasp_md`: Plot VASP molecular dynamics results
+- `plot_lammps_md`: Plot LAMMPS molecular dynamics results
+- `plot_clusters`: Visualize clustering results
+
+### Machine Learning
+- `generate_descriptors`: Calculate atomic environment descriptors
+- `generate_force_descriptors`: Generate force-related descriptors
+- `dim_reduction`: Perform dimension reduction
+- `dim_reduction_mpi`: Perform parallel dimension reduction using MPI
+- `optimize_tslpp_hyperparameters_without_prediction`: Optimize TsLPP hyperparameters
+- `predict_tslpp`: Predict using optimized TsLPP model
+
+For more details on each tool, use the `--help` flag after the command.
+
+## Examples
+
+(Add some basic examples of how to use the main features of AtomicAI)
+
+## Documentation
+
+(Add a link to the full documentation when available)
+
+## Contributing
+
+We welcome contributions to AtomicAI! Please see our contributing guidelines for more information.
+
+## License
+
+AtomicAI is released under the MIT License. See the LICENSE.md file for details.
+
+## Authors
+
+- Selva Chandrasekaran Selvaraj
+
+## Contact
+
+- Email: selvachandrasekar.s@gmail.com
+- Website: https://sites.google.com/view/selvas
+- Twitter: https://twitter.com/selva_odc
+- LinkedIn: https://www.linkedin.com/in/SelvaCS/
+- Google Scholar: https://scholar.google.com/citations?user=vNozeNYAAAAJ&hl=en
+
+## Cite
+
+If you use AtomicAI in your research, please cite: (Add citation information when available)
