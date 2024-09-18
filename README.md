@@ -130,7 +130,13 @@ AtomicAI is released under the MIT License. See the `LICENSE.md` file for detail
 - LinkedIn: https://www.linkedin.com/in/selvachandrasekaranselvaraj/
 - Google Scholar: https://scholar.google.com/citations?user=vNozeNYAAAAJ&hl=en
 - Scopus: https://www.scopus.com/authid/detail.uri?authorId=57225319817
+- ResearchGate: https://www.researchgate.net/profile/Selva-Chandrasekaran-Selvaraj
+- PyPI: https://pypi.org/project/AtomicAI/
+- Documentation: https://atomicai.readthedocs.io/en/latest/
+- GitHub: https://github.com/SelvaGith/AtomicAI
+
 
 ## Cite
 
-If you use AtomicAI in your research, please cite: (Add citation information when available)
+If you use AtomicAI in your research, please cite: 
+
