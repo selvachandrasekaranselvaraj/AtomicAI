@@ -36,7 +36,13 @@ setup(
         "Bug Tracker": "https://github.com/SelvaGith/AtomicAI/issues",
         "Source": "https://github.com/SelvaGith/AtomicAI",
         "Twitter": "https://twitter.com/selva_odc",
-        "LinkedIn" : "https://www.linkedin.com/in/SelvaCS/?original_referer=https%3A%2F%2Fwww.google.com%2F",
+        "LinkedIn" : "https://www.linkedin.com/in/selvachandrasekaranselvaraj/",
+        "Website": "https://atomicai.example.com",
+        "ResearchGate": "https://www.researchgate.net/profile/Selva-Chandrasekaran-Selvaraj",
+        "Google Scholar": "https://scholar.google.com/citations?user=vNozeNYAAAAJ&hl=en",
+        "PyPI": "https://pypi.org/project/AtomicAI/",
+        "Documentation": "https://atomicai.readthedocs.io/en/latest/",
+        "GitHub": "https://github.com/SelvaGith/AtomicAI", ,
         "Scopus": "https://www.scopus.com/authid/detail.uri?authorId=57225319817",
         "Scholar" : "https://scholar.google.com/citations?user=vNozeNYAAAAJ&hl=en",
 
@@ -44,8 +50,7 @@ setup(
     license='MIT',
 
 
-    #packages=['AtomicAI'], #find_packages(),
-    packages=find_packages(),
+    packages=['AtomicAI'], #find_packages(),
     classifiers=[
         "Intended Audience :: Science/Research",
         "Programming Language :: Python :: 3.9",

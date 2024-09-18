@@ -127,7 +127,7 @@ AtomicAI is released under the MIT License. See the `LICENSE.md` file for detail
 - Email: selvachandrasekar.s@gmail.com
 - Website: https://sites.google.com/view/selvas
 - Twitter: https://twitter.com/selva_odc
-- LinkedIn: https://www.linkedin.com/in/SelvaCS/
+- LinkedIn: https://www.linkedin.com/in/selvachandrasekaranselvaraj/
 - Google Scholar: https://scholar.google.com/citations?user=vNozeNYAAAAJ&hl=en
 - Scopus: https://www.scopus.com/authid/detail.uri?authorId=57225319817
 
