@@ -7,7 +7,7 @@ from collections import Counter
 # Third-party imports
 import numpy as np
 import matplotlib.pyplot as plt
-from scipy.stats import norm
+from scipy import stats
 import ase.io
 
 # Local imports

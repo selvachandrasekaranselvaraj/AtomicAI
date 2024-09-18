@@ -9,9 +9,9 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from scipy.signal import find_peaks
 import ase.io
-from ase.build import molecule, make_supercell
+from ase.build import make_supercell
 from ase.geometry.analysis import Analysis
-from ase.data import atomic_numbers, atomic_names, atomic_masses, covalent_radii
+from ase.data import atomic_numbers
 
 # Suppress warnings
 warnings.filterwarnings("ignore")

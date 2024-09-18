@@ -7,12 +7,12 @@ from os.path import isfile, join
 # Third-party imports
 import numpy as np
 import matplotlib.pyplot as plt
-from scipy.signal import find_peaks
-from lmfit import models
+from scipy import signal
 import ase.io
 from ase.build import molecule
 from ase.geometry.analysis import Analysis
 from ase.data import atomic_numbers, atomic_names, atomic_masses, covalent_radii
+from lmfit import models
 
 # Local imports
 from AtomicAI.io.write_data_in_py import write_data_in_py
