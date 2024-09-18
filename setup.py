@@ -102,3 +102,6 @@ setup(
 
                                     ]},
 )
+
+
+#(Selvaraj Selva Chandrasekaran, "AtomicAI: A Comprehensive Toolkit for Atomic Simulations, 2023."@article{selvaraj2023atomicai,author = {Selvaraj Selva Chandrasekaran}, title = {AtomicAI: A Comprehensive Toolkit for Atomic Simulations}, year = {2023}, journal = {Journal of Computational Science}volume = {journal = {Journal of Computational Science}, volume = {10}, pages = {1-10}, doi = {10.1016/j.jocs.2023.100123}})
