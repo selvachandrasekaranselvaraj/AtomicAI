@@ -1,27 +1,20 @@
+# Standard library imports
+import os
+import sys
 import warnings
 
-# Filter and ignore specific warnings (e.g., DeprecationWarning)
-warnings.filterwarnings("ignore")
-
-import pandas as pd
+# Third-party imports
 import numpy as np
-import ase.io
-from ase.build import molecule
-from ase.geometry.analysis import Analysis
-import os, sys
-from os import listdir
-from os.path import isfile, join
-
-from ase.build import make_supercell
+import pandas as pd
 import matplotlib.pyplot as plt
 from scipy.signal import find_peaks
-import math
-
-#from scipy import integrate
-
+import ase.io
+from ase.build import molecule, make_supercell
+from ase.geometry.analysis import Analysis
 from ase.data import atomic_numbers, atomic_names, atomic_masses, covalent_radii
 
-# List of cations and anions based on periodic table groups
+# Suppress warnings
+warnings.filterwarnings("ignore")
 
 def pairs(a, b, predict):
     pairs_ = []

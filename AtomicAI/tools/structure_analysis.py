@@ -1,18 +1,24 @@
-# -*- coding: utf-8 -*-
-import warnings
-warnings.filterwarnings("ignore")  
-import os, sys
+# Standard library imports
+import os
+import sys
 import math
-import ase.io
+from collections import Counter
+
+# Third-party imports
 import numpy as np
+import matplotlib.pyplot as plt
+from scipy.stats import norm
+import ase.io
+
+# Local imports
 from AtomicAI.io.write_data_in_py import write_data_in_py
 from AtomicAI.tools.select_snapshots import select_snapshots
-from  AtomicAI.tools.define_mirror_cubic import define_mirror_cubic
-from  AtomicAI.tools.angles_in_tetrahedron import angles_in_tetrahedron
-import numpy as np
-from scipy.stats import norm
-import matplotlib.pyplot as plt
-from collections import Counter
+from AtomicAI.tools.define_mirror_cubic import define_mirror_cubic
+from AtomicAI.tools.angles_in_tetrahedron import angles_in_tetrahedron
+
+# Optionally suppress warnings (decide on a project-wide policy)
+import warnings
+warnings.filterwarnings("ignore")
 
 Rc=6.5
 r_nb = 3.00 

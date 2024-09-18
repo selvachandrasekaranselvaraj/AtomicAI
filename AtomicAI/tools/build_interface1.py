@@ -1,6 +1,11 @@
-import warnings, os
-warnings.filterwarnings("ignore")
-#from pymatgen import Structure
+# Standard library imports
+import os
+import warnings
+
+# Third-party imports
+import numpy as np
+from ase.io import read, write
+from pymatgen.core.structure import Structure
 from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
 from pymatgen.transformations.advanced_transformations import EnumerateStructureTransformation
 from pymatgen.io.vasp.sets import batch_write_input, MPRelaxSet
@@ -8,9 +13,9 @@ from pymatgen.analysis.interfaces.coherent_interfaces import CoherentInterfaceBu
 from pymatgen.analysis.interfaces.zsl import ZSLGenerator
 from pymatgen.analysis.interfaces.substrate_analyzer import SubstrateAnalyzer
 from pymatgen.core.surface import SlabGenerator
-from ase.io import read, write
-from pymatgen.core.structure import Structure
-import numpy as np
+
+# Suppress warnings
+warnings.filterwarnings("ignore")
 
 def updatepositions(atoms):
     cell = atoms.cell

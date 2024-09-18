@@ -1,19 +1,25 @@
-import warnings
-warnings.filterwarnings("ignore")
+# Standard library imports
+import os
+import sys
+from os import listdir
+from os.path import isfile, join
+
+# Third-party imports
 import numpy as np
+import matplotlib.pyplot as plt
+from scipy.signal import find_peaks
+from lmfit import models
 import ase.io
 from ase.build import molecule
 from ase.geometry.analysis import Analysis
 from ase.data import atomic_numbers, atomic_names, atomic_masses, covalent_radii
-import os, sys
-from os import listdir
-from os.path import isfile, join
 
-import matplotlib.pyplot as plt
-from scipy.signal import find_peaks
-from lmfit import models
-
+# Local imports
 from AtomicAI.io.write_data_in_py import write_data_in_py
+
+# Optionally suppress warnings (decide on a project-wide policy)
+import warnings
+warnings.filterwarnings("ignore")
 
 def RDF():
     # Searching md.stats file in the persent directory

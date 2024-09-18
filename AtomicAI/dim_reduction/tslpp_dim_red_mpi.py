@@ -1,15 +1,18 @@
+import os
+import sys
+import time
+import multiprocessing
 import warnings
-warnings.filterwarnings("ignore")
-import sys, os
+
 import numpy as np
 import pandas as pd
 
-import time, multiprocessing
 from AtomicAI.dim_reduction.perform_dim_reduc_models import perform_reduce_dimensions
 from AtomicAI.dim_reduction.inputs_for_dim_reduction import inputs_for_dim_reduction
 from AtomicAI.dim_reduction.outputs_for_dim_reduction import outputs_for_dim_reduction
 from AtomicAI.data.data_lib import no_mpi_processors
 
+warnings.filterwarnings("ignore")
 
 def dim_reduction_mpi():
     pool = multiprocessing.Pool(no_mpi_processors)
