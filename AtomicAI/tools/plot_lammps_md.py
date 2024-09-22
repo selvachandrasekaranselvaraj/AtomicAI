@@ -4,6 +4,7 @@ import pandas as pd
 import numpy as np
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
+import scipy.stats as stats
 
 # Function to determine number of columns and rows for subplots
 def n_col_row(n_plots):
@@ -58,7 +59,15 @@ def n_col_row(n_plots):
     return n_rows, n_columns
 
 # Function to decorate plot borders and layout
-def decorate_borders(fig, font_size, n_rows, n_columns, y_ranges, y_labels, show_flabels, time_unit):
+def decorate_borders(fig, 
+                     font_size, 
+                     n_rows, 
+                     n_columns, 
+                     y_ranges_max,
+                     y_ranges_min, 
+                     y_labels, 
+                     show_flabels, 
+                     time_unit):
     """
     Updates the layout and appearance of the plotly figure.
 
@@ -146,16 +155,9 @@ def decorate_borders(fig, font_size, n_rows, n_columns, y_ranges, y_labels, show
     for i_axis, y_label in enumerate(y_labels):
         # Use the dictionary to get the new label
         modified_y_label = label_mapping.get(y_label, y_label)
-        
-        # Update y_ranges if necessary
-        if y_label == 'Volume':
-            y_ranges[i_axis] += y_ranges[i_axis] * 0.02
-        if y_label == 'PotEng':
-            y_ranges[i_axis] -= y_ranges[i_axis] * 0.006
-        if y_label == 'Press':
-            y_ranges[i_axis] += y_ranges[i_axis] * 0.1
-        if y_label == 'Temp':
-            y_ranges[i_axis] += y_ranges[i_axis] * 0.02
+
+        y_range_diff = (y_ranges_max[i_axis] - y_ranges_min[i_axis]) * 0.05
+        y_ranges_max[i_axis] += y_range_diff
 
         # Append the modified label
         modified_y_labels.append(modified_y_label)
@@ -204,7 +206,7 @@ def decorate_borders(fig, font_size, n_rows, n_columns, y_ranges, y_labels, show
         i_label = 0
         for n_row in range(1, n_rows + 1):
             for n_col in range(1, n_columns + 1):
-                if i_label >= len(y_ranges):
+                if i_label >= len(y_ranges_max):
                     break
                 fig.add_annotation(
                     text=f"{flabel[i_label]}",
@@ -214,7 +216,7 @@ def decorate_borders(fig, font_size, n_rows, n_columns, y_ranges, y_labels, show
                     yref="paper",
                     font_size=font_size + 5,
                     x=0.0,
-                    y=y_ranges[i_label],
+                    y=y_ranges_max[i_label],
                     showarrow=False,
                     row=n_row,
                     col=n_col
@@ -224,7 +226,15 @@ def decorate_borders(fig, font_size, n_rows, n_columns, y_ranges, y_labels, show
     return fig
 
 # Function to plot data using Plotly
-def plotly_plot(n_files, df, y_labels, fig, file_n, file_name, y_ranges, legend_grand):
+def plotly_plot(n_files, 
+                df, 
+                y_labels, 
+                fig, 
+                file_n, 
+                file_name, 
+                y_ranges_max,
+                y_ranges_min,
+                legend_grand):
     """
     Creates a plotly figure with subplots based on the data provided.
 
@@ -310,7 +320,15 @@ def plotly_plot(n_files, df, y_labels, fig, file_n, file_name, y_ranges, legend_
             )
             i_plot += 1
 
-    fig = decorate_borders(fig, font_size, n_rows, n_columns, y_ranges, y_labels, show_flabels, time_unit)
+    fig = decorate_borders(fig, 
+                           font_size, 
+                           n_rows, 
+                           n_columns, 
+                           y_ranges_max,
+                           y_ranges_min, 
+                           y_labels, 
+                           show_flabels, 
+                           time_unit)
     print(f"{file_name}...")
     return fig
 
@@ -392,10 +410,16 @@ def read_input_file(file_path, starting_word, ending_word):
         data_ = file_data.readlines()
 
     df = pd.DataFrame()
+    i_ = 0
     for i_l, f_l in zip(begin_line_numbers, end_line_numbers):
+        if i_ == 0:
+            skip = 200
+        else:
+            skip = 1
         data = [line.split() for line in data_[i_l:f_l - 1]]
-        df_ = pd.DataFrame(data[1:-2], columns=data[0])
+        df_ = pd.DataFrame(data[skip:-2], columns=data[0])
         df = pd.concat([df, df_.astype(float)])
+        i_ += 1
 
     ensembles, n_atoms = determine_ensemble(file_path)
     df['PotEng'] /= n_atoms
@@ -407,8 +431,11 @@ def read_input_file(file_path, starting_word, ending_word):
         y_labels = ['Temp', 'PotEng', 'KinEng', 'Press']
     if 'NPT' in ensembles:
         y_labels = ['Temp', 'PotEng', 'Press', 'Cella', 'Cellb',  'Cellc']
-    y_ranges = [max(np.array(df[key].astype(float))) for key in y_labels]
-    return df, y_labels, y_ranges
+    y_ranges_max = [max(np.array(df[key].astype(float))) for key in y_labels]
+    y_ranges_min = [min(np.array(df[key].astype(float))) for key in y_labels]
+    return df, y_labels, y_ranges_max, y_ranges_min
+
+
 
 # Main function to generate plots from LAMMPS MD data files
 def plot_lammps_md():
@@ -435,18 +462,29 @@ def plot_lammps_md():
         starting_word = 'Per MPI rank memory'
         ending_word = 'Loop time of'
 
-        df, y_labels, file_y_ranges = read_input_file(file_, starting_word, ending_word)
+        df, y_labels, file_y_ranges_max, file_y_ranges_min, = read_input_file(file_, starting_word, ending_word)
         
 
         if file_n == 0:
-            y_ranges = file_y_ranges
+            y_ranges_max = file_y_ranges_max
+            y_ranges_min = file_y_ranges_min
         else:
             for i_key, key in enumerate(y_labels):
-                if max(np.array(df[key].astype(float))) > y_ranges[i_key]:
-                    y_ranges[i_key] = max(np.array(df[key].astype(float)))
+                if max(np.array(df[key].astype(float))) > y_ranges_max[i_key]:
+                    y_ranges_max[i_key] = max(np.array(df[key].astype(float)))
+                if min(np.array(df[key].astype(float))) < y_ranges_min[i_key]:
+                    y_ranges_min[i_key] = min(np.array(df[key].astype(float)))
 
         n_files = len(filenames)
-        fig = plotly_plot(n_files, df, y_labels, fig, file_n, file_, y_ranges, legend_grand)
+        fig = plotly_plot(n_files, 
+                          df, 
+                          y_labels, 
+                          fig, 
+                          file_n, 
+                          file_, 
+                          y_ranges_max, 
+                          y_ranges_min, 
+                          legend_grand)
 
     print(f"md_plots.png is writing...")
     fig.write_html('md_plots.html')
