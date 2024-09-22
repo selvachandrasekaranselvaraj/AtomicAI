@@ -156,7 +156,7 @@ def decorate_borders(fig,
         # Use the dictionary to get the new label
         modified_y_label = label_mapping.get(y_label, y_label)
 
-        y_range_diff = (y_ranges_max[i_axis] - y_ranges_min[i_axis]) * 0.05
+        y_range_diff = (y_ranges_max[i_axis] - y_ranges_min[i_axis]) * 0.1
         y_ranges_max[i_axis] += y_range_diff
 
         # Append the modified label
@@ -410,30 +410,25 @@ def read_input_file(file_path, starting_word, ending_word):
         data_ = file_data.readlines()
 
     df = pd.DataFrame()
-    i_ = 0
     for i_l, f_l in zip(begin_line_numbers, end_line_numbers):
-        if i_ == 0:
-            skip = 200
-        else:
-            skip = 1
         data = [line.split() for line in data_[i_l:f_l - 1]]
-        df_ = pd.DataFrame(data[skip:-2], columns=data[0])
+        df_ = pd.DataFrame(data[1:-1], columns=data[0])
         df = pd.concat([df, df_.astype(float)])
-        i_ += 1
 
     ensembles, n_atoms = determine_ensemble(file_path)
     df['PotEng'] /= n_atoms
     df['Press'] /= n_atoms
-    df = df.iloc[int(len(df) * 0.005):]
+    df_limit = df.iloc[int(len(df) * 0.07):]
+
     #y_labels = data[0][1:len(data[0])-1]
 
     if 'NVT' in ensembles:
         y_labels = ['Temp', 'PotEng', 'KinEng', 'Press']
     if 'NPT' in ensembles:
         y_labels = ['Temp', 'PotEng', 'Press', 'Cella', 'Cellb',  'Cellc']
-    y_ranges_max = [max(np.array(df[key].astype(float))) for key in y_labels]
-    y_ranges_min = [min(np.array(df[key].astype(float))) for key in y_labels]
-    return df, y_labels, y_ranges_max, y_ranges_min
+    y_ranges_max = [max(np.array(df_limit[key].astype(float))) for key in y_labels]
+    y_ranges_min = [min(np.array(df_limit[key].astype(float))) for key in y_labels]
+    return df_limit, y_labels, y_ranges_max, y_ranges_min
 
 
 
