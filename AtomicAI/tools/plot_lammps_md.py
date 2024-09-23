@@ -423,7 +423,7 @@ def read_input_file(file_path, starting_word, ending_word):
     #y_labels = data[0][1:len(data[0])-1]
 
     if 'NVT' in ensembles:
-        y_labels = ['Temp', 'PotEng', 'KinEng', 'Press']
+        y_labels = ['Temp', 'PotEng', 'Press', 'Volume']
     if 'NPT' in ensembles:
         y_labels = ['Temp', 'PotEng', 'Press', 'Cella', 'Cellb',  'Cellc']
     y_ranges_max = [max(np.array(df_limit[key].astype(float))) for key in y_labels]
