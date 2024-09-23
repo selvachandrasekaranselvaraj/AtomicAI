@@ -139,8 +139,8 @@ def decorate_borders(fig,
     # Define a dictionary to map old y-axis labels to new ones
     label_mapping = {
         'Temp': 'T(K)',
-        'Press': 'P(bar/atom)',
-        'PotEng': 'PE(eV/atom)',
+        'Press': 'P(bar)',
+        'PotEng': 'PE(eV)',
         'KinEng': 'KE(eV)',
         'Volume': 'V(Å<sup>3</sup>)',
         'Cella': 'a(Å)',
