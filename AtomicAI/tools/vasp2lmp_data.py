@@ -13,6 +13,9 @@ def vasp2lmp_data():
     if input_file == 'POSCAR':
        a_vasp = read(input_file)
        out_file = input_file+'.lmp_data'
+    elif input_file == 'CONTCAR':
+       a_vasp = read(input_file)
+       out_file = input_file+'.lmp_data'      
     elif input_file[-4:] == 'vasp':
        a_vasp = read(input_file)
        out_file = input_file[:-4]+'lmp_data'       
