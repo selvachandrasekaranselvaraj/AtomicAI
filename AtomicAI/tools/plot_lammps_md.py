@@ -91,6 +91,9 @@ def decorate_borders(fig,
     elif n_columns == 2:
         width = 600 * n_columns
         height = 175 * n_rows
+    elif n_columns == 4:
+        width = 600 * n_columns
+        height = 300 * n_rows
     else:
         width = 600 * n_columns
         height = 200
@@ -255,12 +258,12 @@ def plotly_plot(n_files,
     n_rows, n_columns = n_col_row(len(y_labels))
     if n_columns >= 3:
         font_size = 20
-        horizontal_spacing = 0.10
-        vertical_spacing = 0.06
+        horizontal_spacing = 0.07  #0.10
+        vertical_spacing = 0.06  #0.06
     else:
         font_size = 21
-        horizontal_spacing = 0.15
-        vertical_spacing = 0.04
+        horizontal_spacing = 0.10 #0.15
+        vertical_spacing = 0.04  #0.04
     
     if file_n == 0:
         fig = make_subplots(
@@ -418,14 +421,15 @@ def read_input_file(file_path, starting_word, ending_word):
     ensembles, n_atoms = determine_ensemble(file_path)
     df['PotEng'] /= n_atoms
     df['Press'] /= n_atoms
-    df_limit = df.iloc[int(len(df) * 0.07):]
+    df_limit = df.iloc[int(len(df) * 0.01):]
 
     #y_labels = data[0][1:len(data[0])-1]
 
     if 'NVT' in ensembles:
         y_labels = ['Temp', 'PotEng', 'Press', 'Volume']
     if 'NPT' in ensembles:
-        y_labels = ['Temp', 'PotEng', 'Press', 'Cella', 'Cellb',  'Cellc']
+        y_labels = ['Temp', 'PotEng', 'Press', 'Volume']
+        #y_labels = ['Temp', 'PotEng', 'Press', 'Cella', 'Cellb',  'Cellc']
     y_ranges_max = [max(np.array(df_limit[key].astype(float))) for key in y_labels]
     y_ranges_min = [min(np.array(df_limit[key].astype(float))) for key in y_labels]
     return df_limit, y_labels, y_ranges_max, y_ranges_min

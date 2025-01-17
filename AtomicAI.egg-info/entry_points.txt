@@ -17,7 +17,6 @@ optimize_tslpp_hyperparameters_with_prediction = AtomicAI.dim_reduction.perform_
 optimize_tslpp_hyperparameters_without_prediction = AtomicAI.dim_reduction.perform_tslpp_for_hyperparameters:perform_tslpp_hyperparameters
 pca = AtomicAI.dim_reduction.pca:pca
 plot_clusters = AtomicAI.plots.plot_clusters:plot_clusters
-plot_deepPot_accuracy = AtomicAI.tools.plot_deepPot_accuracy:plot_deepPot_accuracy
 plot_lammps_md = AtomicAI.tools.plot_lammps_md:plot_lammps_md
 plot_md_stats = AtomicAI.tools.plt_md_stats:plt_md_stats
 plot_rdf_data = AtomicAI.plots.plot_rdf_data:read_RDF_data

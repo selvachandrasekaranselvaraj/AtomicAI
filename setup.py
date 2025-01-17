@@ -33,8 +33,8 @@ setup(
     url='https://sites.google.com/view/selvas',
 
     project_urls = {
-        "Bug Tracker": "https://github.com/SelvaGith/AtomicAI/issues",
-        "Source": "https://github.com/SelvaGith/AtomicAI",
+        "Bug Tracker": "https://github.com/selvachandrasekaranselvaraj/AtomicAI/issues",
+        "Source": "https://github.com/selvachandrasekaranselvaraj/AtomicAI/",
         "Twitter": "https://twitter.com/selva_odc",
         "LinkedIn" : "https://www.linkedin.com/in/selvachandrasekaranselvaraj/",
         "Website": "https://atomicai.example.com",
@@ -42,7 +42,7 @@ setup(
         "Google Scholar": "https://scholar.google.com/citations?user=vNozeNYAAAAJ&hl=en",
         "PyPI": "https://pypi.org/project/AtomicAI/",
         "Documentation": "https://atomicai.readthedocs.io/en/latest/",
-        "GitHub": "https://github.com/SelvaGith/AtomicAI", ,
+        "GitHub": "https://github.com/selvachandrasekaranselvaraj/AtomicAI", 
         "Scopus": "https://www.scopus.com/authid/detail.uri?authorId=57225319817",
         "Scholar" : "https://scholar.google.com/citations?user=vNozeNYAAAAJ&hl=en",
 

@@ -46,7 +46,6 @@ AtomicAI/dim_reduction/lpp.py
 AtomicAI/dim_reduction/outputs_for_dim_reduction.py
 AtomicAI/dim_reduction/perform_dim_reduc_models.py
 AtomicAI/dim_reduction/perform_tslpp_for_hyperparameters.py
-AtomicAI/dim_reduction/perform_tslpp_for_hyperparameters_with_prediction-Copy1.py
 AtomicAI/dim_reduction/perform_tslpp_for_hyperparameters_with_prediction.py
 AtomicAI/dim_reduction/perform_tslpp_predict.py
 AtomicAI/dim_reduction/select_descriptors.py
@@ -74,7 +73,6 @@ AtomicAI/tools/angle_between_three_points.py
 AtomicAI/tools/angles_in_tetrahedron.py
 AtomicAI/tools/ase_traj2xyz_traj.py
 AtomicAI/tools/build_interface.py
-AtomicAI/tools/build_interface1.py
 AtomicAI/tools/cif2cq.py
 AtomicAI/tools/cq2cif.py
 AtomicAI/tools/cq2vasp.py
@@ -83,7 +81,6 @@ AtomicAI/tools/labels.py
 AtomicAI/tools/lammps_npt.py
 AtomicAI/tools/lammps_nvt.py
 AtomicAI/tools/lmptraj2vasp.py
-AtomicAI/tools/plot_deepPot_accuracy.py
 AtomicAI/tools/plot_lammps_md.py
 AtomicAI/tools/plot_vasp_md.py
 AtomicAI/tools/plt_md_stats.py
