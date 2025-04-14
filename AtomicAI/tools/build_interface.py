@@ -90,8 +90,8 @@ def build_interface():
 
     film_structure = Structure.from_file("film.vasp")
     substrate_structure = Structure.from_file("sub.vasp")
-    sub_indices = [(1, 0, 0)] #[(1, 0, 0), (0, 1, 0), (0, 0, 1), (1, 1, 0), (1, 0, 4)]
-    film_index = (1, 0, 0)
+    sub_indices = [(0, 0, 1)] #[(1, 0, 0), (0, 1, 0), (0, 0, 1), (1, 1, 0), (1, 0, 4)]
+    film_index = (0, 0, 1)
     for sub_index in sub_indices:
         
         #Calcualtion directory
