@@ -41,7 +41,7 @@ def setup_logging(structure_names):
         level=logging.INFO,
         format='%(message)s',
         handlers=[
-            logging.FileHandler(log_filename),
+            logging.FileHandler(log_filename, mode='w'),
             logging.StreamHandler()
         ]
     )
@@ -102,7 +102,10 @@ def analyze_vectors_2(structures, threshold, max_multiples):
                         continue
 
                     len1, len2 = i1 * all_norms[s1,v1], i2 * all_norms[s2,v2]
-                    mismatch = abs(len1 - len2) / min(len1, len2) * 100
+                    mismatch = abs(len1 - len2) / min(len1, len2) * 100 * 0.5
+                    mean_len = np.mean([len1, len2]) 
+                    if s1 == 0 and s2 == 1 and v1 ==0 and v2 ==0:
+                        mean_len_a = np.mean([len1, len2]) 
 
                     if mismatch < threshold:
                         best = {
@@ -112,7 +115,7 @@ def analyze_vectors_2(structures, threshold, max_multiples):
                             'multiples': (i1, i2),
                             'scaled_lengths': (len1, len2),
                             'mismatch%': mismatch,
-                            'sum': i1 + i2
+                            'mean_length': mean_len
                         }
                         break
                 if best:
@@ -124,12 +127,12 @@ def analyze_vectors_2(structures, threshold, max_multiples):
                 'multiples': None,
                 'scaled_lengths': None,
                 'mismatch%': None,
-                'sum': None
+                'mean_length': None
             })
         results.append(struct_results)
     r = results[0]
     results = [[r[0], r[3], r[5], r[1], r[2], r[4]]]
-    return results, all_norms
+    return results, all_norms, mean_len_a
 
 def analyze_vectors_3(structures, threshold, n_multiples):
     """
@@ -157,7 +160,8 @@ def analyze_vectors_3(structures, threshold, n_multiples):
             current_multiples = [i+1 for i in indices]
             current_lengths = [multiples[i,j] for j, i in enumerate(indices)]
             min_len, max_len = min(current_lengths), max(current_lengths)
-            mismatch = (max_len - min_len)/min_len * 100
+            mismatch = (max_len - min_len)/min_len * 100 * 0.5
+            mean_len = np.mean([max_len, min_len])
 
             if mismatch < threshold and sum(current_multiples) < min_sum:
                 min_sum = sum(current_multiples)
@@ -167,8 +171,11 @@ def analyze_vectors_3(structures, threshold, n_multiples):
                     'lengths': current_lengths,
                     'mismatch%': mismatch,
                     'min_length': min_len,
-                    'max_length': max_len
+                    'max_length': max_len,
+                    'mean_length': mean_len
                 }
+                if vec_idx == 0:
+                     mean_len_a = mean_len #np.mean([max_len, min_len])
                 if min_sum == n_structures:  # Early exit for perfect match
                     break
         results.append(best or {
@@ -177,9 +184,10 @@ def analyze_vectors_3(structures, threshold, n_multiples):
             'lengths': None,
             'mismatch%': None,
             'min_length': None,
-            'max_length': None
+            'max_length': None,
+            'mean_length': None
         })
-    return results, all_lengths
+    return results, all_lengths, mean_len_a
 
 def print_results(structures, results, all_lengths, threshold, structure_names):
     """
@@ -202,14 +210,14 @@ def print_results(structures, results, all_lengths, threshold, structure_names):
         for struct_results in results:
             s1, s2 = struct_results[0]['structures']
             logger.info(f"\nStructures {s1}-{s2}:")
-            logger.info("Vectors  Multiples   Length1   Length2   Mismatch%  Sum")
-            logger.info("------------------------------------------------------")
+            logger.info("Vectors  Multiples   Length1   Length2   Mismatch%  Mean_Length")
+            logger.info("----------------------------------------------------------------")
             for res in struct_results:
                 if res['multiples']:
                     line = (f"{res['vectors'][0]}{s1}-{res['vectors'][1]}{s2}  "
                            f"{res['multiples'][0]}:{res['multiples'][1]:<7}  "
                            f"{res['scaled_lengths'][0]:8.3f}  {res['scaled_lengths'][1]:8.3f}  "
-                           f"{res['mismatch%']:6.2f}%  {res['sum']:3d}")
+                           f"{res['mismatch%']:6.2f}%  {res['mean_length']:8.3f}")
                     if res['mismatch%'] < threshold:
                         logger.info(line)
                     else:
@@ -218,14 +226,14 @@ def print_results(structures, results, all_lengths, threshold, structure_names):
                     logger.info(f"{res['vectors'][0]}{s1}-{res['vectors'][1]}{s2}  {'-':<7}  {'-':<8}  {'-':<8}  {'No match':<8}  {'-':<3}")
     else:
         logger.info(f"\nVector Analysis Across All Structures (Threshold = {threshold}%):")
-        logger.info("Vector  MinLength(Å)  MaxLength(Å)  Mismatch%  Multiples")
-        logger.info("-------------------------------------------------------")
+        logger.info("Vector  MinLength(Å)  MaxLength(Å) Mean_Length(Å) Mismatch%  Multiples")
+        logger.info("-----------------------------------------------------------------------")
         for res in results:
             if res['multiples']:
                 if res['mismatch%'] < threshold:
-                    logger.info(f"{res['vector']:<6}  {res['min_length']:11.3f}  {res['max_length']:11.3f}  {res['mismatch%']:6.2f}%  {':'.join(map(str, res['multiples']))}")
+                    logger.info(f"{res['vector']:<6}  {res['min_length']:11.3f}  {res['max_length']:11.3f} {res['mean_length']:12.3f} {res['mismatch%']:10.2f}%  {':'.join(map(str, res['multiples']))} ")
                 else:
-                    logger.warning(f"{res['vector']:<6}  {res['min_length']:11.3f}  {res['max_length']:11.3f}  {res['mismatch%']:6.2f}%  {':'.join(map(str, res['multiples']))}")
+                    logger.warning(f"{res['vector']:<6}  {res['min_length']:11.3f}  {res['max_length']:11.3f}  {res['mismatch%']:6.2f}%  {':'.join(map(str, res['multiples']))} {res['mean_length']:6.3f}")
             else:
                 logger.info(f"{res['vector']:<6}  {'-':11}  {'-':11}  {'No match':<8}  {'-':<9}")
 
@@ -243,8 +251,18 @@ def supercell(data, nx, ny, nz, name):
     """
     multiplier = np.identity(3) * [nx, ny, nz]
     data = make_supercell(data, multiplier)
-    logger.info(f'Number of atoms in {name} supercell: {len(data.positions)}')
-
+    height = np.linalg.norm(data.cell[2])
+    logger.info(f'\nNumber of atoms in {name} supercell: {len(data.positions)}')
+    logger.info(f'z-axis height of {name} supercell: {height:3.3f}')
+    if height < 15:
+        extend = input("Do you want to EXTEND the height [y/n]:", )
+    if extend in ['', 'y']:
+        nz = int(input("No. of z_units to extand:", ))
+        multiplier = np.identity(3) * [1, 1, nz]
+        data = make_supercell(data, multiplier)
+        height = np.linalg.norm(data.cell[2])
+        logger.info(f'Now, number of atoms in {name} supercell: {len(data.positions)}')
+        logger.info(f'Now, z-axis height of {name} supercell: {height:3.3f}')
     # Sort atoms by element
     elements, positions = list(data.symbols), data.positions.T
     array = np.array([elements, positions[0], positions[1], positions[2]])
@@ -279,7 +297,7 @@ def find_positionsB(atomsA, atomsB):
     
     return positionsB
 
-def updatepositions(input_data, supercell_details, structure_names):
+def updatepositions(input_data, supercell_details, structure_names, mean_len):
     """
     Generate multilayer structure from component structures
     
@@ -301,6 +319,9 @@ def updatepositions(input_data, supercell_details, structure_names):
         nz = 1
         atoms = supercell(atoms_data, nx, ny, nz, name)
         cell = atoms.cell
+        len_a = np.linalg.norm(cell[0])
+        mismatch = abs(len_a - mean_len)/min(len_a, mean_len) * 100 
+        logger.info(f'Mismatch of {name} structure:{mismatch:6.2f}%')
         cells.append(cell)
         
         if i == 0:
@@ -332,6 +353,8 @@ def updatepositions(input_data, supercell_details, structure_names):
     logger.info(f'Structure written to {out_file}')
     
     return combined_atoms
+
+
 def build_multilayers():
     """Main execution function"""
     try:
@@ -342,16 +365,16 @@ def build_multilayers():
         structures, structure_names = read_vasp_files(sys.argv[1:])
         
         max_multiples = 20
-        threshold = 7.0
+        threshold = 11.4
         
         if len(structures) == 2:
-            results, all_lengths = analyze_vectors_2(structures, threshold, max_multiples)
+            results, all_lengths, mean_len = analyze_vectors_2(structures, threshold, max_multiples)
         else:
-            results, all_lengths = analyze_vectors_3(structures, threshold, max_multiples)
+            results, all_lengths, mean_len = analyze_vectors_3(structures, threshold, max_multiples)
 
         print_results(structures, results, all_lengths, threshold, structure_names)
         updatepositions(structures, results[0][0]['multiples'] if len(structures) == 2 else results[0]['multiples'], 
-                      structure_names)
+                      structure_names, mean_len)
         logger.info("Multilayer generation completed successfully")
         
     except Exception as e:
