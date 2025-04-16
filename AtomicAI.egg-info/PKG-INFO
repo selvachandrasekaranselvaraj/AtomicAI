@@ -6,8 +6,8 @@ Home-page: https://sites.google.com/view/selvas
 Author: Selva Chandrasekaran Selvaraj
 Author-email: selvachandrasekar.s@gmail.com
 License: MIT
-Project-URL: Bug Tracker, https://github.com/SelvaGith/AtomicAI/issues
-Project-URL: Source, https://github.com/SelvaGith/AtomicAI
+Project-URL: Bug Tracker, https://github.com/selvachandrasekaranselvaraj/AtomicAI/issues
+Project-URL: Source, https://github.com/selvachandrasekaranselvaraj/AtomicAI/
 Project-URL: Twitter, https://twitter.com/selva_odc
 Project-URL: LinkedIn, https://www.linkedin.com/in/selvachandrasekaranselvaraj/
 Project-URL: Website, https://atomicai.example.com
@@ -15,7 +15,7 @@ Project-URL: ResearchGate, https://www.researchgate.net/profile/Selva-Chandrasek
 Project-URL: Google Scholar, https://scholar.google.com/citations?user=vNozeNYAAAAJ&hl=en
 Project-URL: PyPI, https://pypi.org/project/AtomicAI/
 Project-URL: Documentation, https://atomicai.readthedocs.io/en/latest/
-Project-URL: GitHub, https://github.com/SelvaGith/AtomicAI
+Project-URL: GitHub, https://github.com/selvachandrasekaranselvaraj/AtomicAI
 Project-URL: Scopus, https://www.scopus.com/authid/detail.uri?authorId=57225319817
 Project-URL: Scholar, https://scholar.google.com/citations?user=vNozeNYAAAAJ&hl=en
 Classifier: Intended Audience :: Science/Research

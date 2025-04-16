@@ -1,6 +1,7 @@
 [console_scripts]
 ase_traj2xyz_traj = AtomicAI.tools.ase_traj2xyz_traj:ase_traj2xyz_traj
 build_interface = AtomicAI.tools.build_interface:build_interface
+build_multilayers = AtomicAI.tools.build_multilayers:build_multilayers
 cif2cq = AtomicAI.tools.cif2cq:cif2cq
 cq2cif = AtomicAI.tools.cq2cif:cq2cif
 cq2vasp = AtomicAI.tools.cq2vasp:cq2vasp
