@@ -17,6 +17,8 @@ Key Features:
 - Comprehensive error handling
 """
 
+import random
+import ast
 import sys
 import os
 import logging
@@ -41,7 +43,7 @@ def setup_logging(structure_names):
         level=logging.INFO,
         format='%(message)s',
         handlers=[
-            logging.FileHandler(log_filename, mode='w'),
+            logging.FileHandler(log_filename),
             logging.StreamHandler()
         ]
     )
@@ -102,10 +104,7 @@ def analyze_vectors_2(structures, threshold, max_multiples):
                         continue
 
                     len1, len2 = i1 * all_norms[s1,v1], i2 * all_norms[s2,v2]
-                    mismatch = abs(len1 - len2) / min(len1, len2) * 100 * 0.5
-                    mean_len = np.mean([len1, len2]) 
-                    if s1 == 0 and s2 == 1 and v1 ==0 and v2 ==0:
-                        mean_len_a = np.mean([len1, len2]) 
+                    mismatch = abs(len1 - len2) / min(len1, len2) * 100
 
                     if mismatch < threshold:
                         best = {
@@ -115,7 +114,7 @@ def analyze_vectors_2(structures, threshold, max_multiples):
                             'multiples': (i1, i2),
                             'scaled_lengths': (len1, len2),
                             'mismatch%': mismatch,
-                            'mean_length': mean_len
+                            'sum': i1 + i2
                         }
                         break
                 if best:
@@ -127,12 +126,10 @@ def analyze_vectors_2(structures, threshold, max_multiples):
                 'multiples': None,
                 'scaled_lengths': None,
                 'mismatch%': None,
-                'mean_length': None
+                'sum': None
             })
         results.append(struct_results)
-    r = results[0]
-    results = [[r[0], r[3], r[5], r[1], r[2], r[4]]]
-    return results, all_norms, mean_len_a
+    return results, all_norms
 
 def analyze_vectors_3(structures, threshold, n_multiples):
     """
@@ -160,8 +157,7 @@ def analyze_vectors_3(structures, threshold, n_multiples):
             current_multiples = [i+1 for i in indices]
             current_lengths = [multiples[i,j] for j, i in enumerate(indices)]
             min_len, max_len = min(current_lengths), max(current_lengths)
-            mismatch = (max_len - min_len)/min_len * 100 * 0.5
-            mean_len = np.mean([max_len, min_len])
+            mismatch = (max_len - min_len)/min_len * 100
 
             if mismatch < threshold and sum(current_multiples) < min_sum:
                 min_sum = sum(current_multiples)
@@ -171,11 +167,8 @@ def analyze_vectors_3(structures, threshold, n_multiples):
                     'lengths': current_lengths,
                     'mismatch%': mismatch,
                     'min_length': min_len,
-                    'max_length': max_len,
-                    'mean_length': mean_len
+                    'max_length': max_len
                 }
-                if vec_idx == 0:
-                     mean_len_a = mean_len #np.mean([max_len, min_len])
                 if min_sum == n_structures:  # Early exit for perfect match
                     break
         results.append(best or {
@@ -184,10 +177,9 @@ def analyze_vectors_3(structures, threshold, n_multiples):
             'lengths': None,
             'mismatch%': None,
             'min_length': None,
-            'max_length': None,
-            'mean_length': None
+            'max_length': None
         })
-    return results, all_lengths, mean_len_a
+    return results, all_lengths
 
 def print_results(structures, results, all_lengths, threshold, structure_names):
     """
@@ -210,14 +202,14 @@ def print_results(structures, results, all_lengths, threshold, structure_names):
         for struct_results in results:
             s1, s2 = struct_results[0]['structures']
             logger.info(f"\nStructures {s1}-{s2}:")
-            logger.info("Vectors  Multiples   Length1   Length2   Mismatch%  Mean_Length")
-            logger.info("----------------------------------------------------------------")
+            logger.info("Vectors  Multiples   Length1   Length2   Mismatch%  Sum")
+            logger.info("------------------------------------------------------")
             for res in struct_results:
                 if res['multiples']:
                     line = (f"{res['vectors'][0]}{s1}-{res['vectors'][1]}{s2}  "
                            f"{res['multiples'][0]}:{res['multiples'][1]:<7}  "
                            f"{res['scaled_lengths'][0]:8.3f}  {res['scaled_lengths'][1]:8.3f}  "
-                           f"{res['mismatch%']:6.2f}%  {res['mean_length']:8.3f}")
+                           f"{res['mismatch%']:6.2f}%  {res['sum']:3d}")
                     if res['mismatch%'] < threshold:
                         logger.info(line)
                     else:
@@ -226,14 +218,14 @@ def print_results(structures, results, all_lengths, threshold, structure_names):
                     logger.info(f"{res['vectors'][0]}{s1}-{res['vectors'][1]}{s2}  {'-':<7}  {'-':<8}  {'-':<8}  {'No match':<8}  {'-':<3}")
     else:
         logger.info(f"\nVector Analysis Across All Structures (Threshold = {threshold}%):")
-        logger.info("Vector  MinLength(Å)  MaxLength(Å) Mean_Length(Å) Mismatch%  Multiples")
-        logger.info("-----------------------------------------------------------------------")
+        logger.info("Vector  MinLength(Å)  MaxLength(Å)  Mismatch%  Multiples")
+        logger.info("-------------------------------------------------------")
         for res in results:
             if res['multiples']:
                 if res['mismatch%'] < threshold:
-                    logger.info(f"{res['vector']:<6}  {res['min_length']:11.3f}  {res['max_length']:11.3f} {res['mean_length']:12.3f} {res['mismatch%']:10.2f}%  {':'.join(map(str, res['multiples']))} ")
+                    logger.info(f"{res['vector']:<6}  {res['min_length']:11.3f}  {res['max_length']:11.3f}  {res['mismatch%']:6.2f}%  {':'.join(map(str, res['multiples']))}")
                 else:
-                    logger.warning(f"{res['vector']:<6}  {res['min_length']:11.3f}  {res['max_length']:11.3f}  {res['mismatch%']:6.2f}%  {':'.join(map(str, res['multiples']))} {res['mean_length']:6.3f}")
+                    logger.warning(f"{res['vector']:<6}  {res['min_length']:11.3f}  {res['max_length']:11.3f}  {res['mismatch%']:6.2f}%  {':'.join(map(str, res['multiples']))}")
             else:
                 logger.info(f"{res['vector']:<6}  {'-':11}  {'-':11}  {'No match':<8}  {'-':<9}")
 
@@ -251,18 +243,8 @@ def supercell(data, nx, ny, nz, name):
     """
     multiplier = np.identity(3) * [nx, ny, nz]
     data = make_supercell(data, multiplier)
-    height = np.linalg.norm(data.cell[2])
-    logger.info(f'\nNumber of atoms in {name} supercell: {len(data.positions)}')
-    logger.info(f'z-axis height of {name} supercell: {height:3.3f}')
-    if height < 15:
-        extend = input("Do you want to EXTEND the height [y/n]:", )
-    if extend in ['', 'y']:
-        nz = int(input("No. of z_units to extand:", ))
-        multiplier = np.identity(3) * [1, 1, nz]
-        data = make_supercell(data, multiplier)
-        height = np.linalg.norm(data.cell[2])
-        logger.info(f'Now, number of atoms in {name} supercell: {len(data.positions)}')
-        logger.info(f'Now, z-axis height of {name} supercell: {height:3.3f}')
+    logger.info(f'Number of atoms in {name} supercell: {len(data.positions)}')
+
     # Sort atoms by element
     elements, positions = list(data.symbols), data.positions.T
     array = np.array([elements, positions[0], positions[1], positions[2]])
@@ -297,7 +279,7 @@ def find_positionsB(atomsA, atomsB):
     
     return positionsB
 
-def updatepositions(input_data, supercell_details, structure_names, mean_len):
+def updatepositions(input_data, n_cells, structure_names):
     """
     Generate multilayer structure from component structures
     
@@ -312,26 +294,15 @@ def updatepositions(input_data, supercell_details, structure_names, mean_len):
     out_file = f"{'_'.join(structure_names)}.vasp"
     atoms_all = []
     cells = []
+    m_cell = np.mean([c.cell for c in input_data], axis=0)
     
     logger.info("\nBuilding multilayer structure:")
-    structures = []
-    for i, (atoms_data, n, name) in enumerate(zip(input_data, supercell_details, structure_names)):
-        nx = ny = n
-        nz = 1
-        atoms = supercell(atoms_data, nx, ny, nz, name)
-        structures.append(atoms)
-   
-    m_cell = np.mean([c.cell for c in structures], axis=0)
-    for i, (atoms, name) in enumerate(zip(structures, structure_names)):
-        len_a = np.linalg.norm(atoms.cell[0])
+    for i, (atoms,n,  name) in enumerate(zip(input_data, n_cells, structure_names)):
         m_cell[2] = atoms.cell[2]
         atoms.set_cell(m_cell, scale_atoms=True)
+        atoms = supercell(atoms, 1, 1, n, name) 
         cell = atoms.cell
-        print(len_a, np.linalg.norm(m_cell[0]), mean_len)
-        mismatch = abs(len_a - mean_len)/min(len_a, mean_len) * 100 
-        logger.info(f'Mismatch of {name} structure:{mismatch:6.2f}%')
         cells.append(cell)
-        
         if i == 0:
             atoms.positions[:, 2] += 0.0
             mean_cell = cell
@@ -362,28 +333,26 @@ def updatepositions(input_data, supercell_details, structure_names, mean_len):
     
     return combined_atoms
 
-
-def build_multilayers():
+def main():
     """Main execution function"""
     try:
         if len(sys.argv) < 2:
             print(f"Usage: {sys.argv[0]} POSCAR1 POSCAR2 [POSCAR3 ...]", file=sys.stderr)
             sys.exit(1)
-
-        structures, structure_names = read_vasp_files(sys.argv[1:])
         
-        max_multiples = 20
-        threshold = 5.4
+        files = sys.argv[1:]
         
-        if len(structures) == 2:
-            results, all_lengths, mean_len = analyze_vectors_2(structures, threshold, max_multiples)
-        else:
-            results, all_lengths, mean_len = analyze_vectors_3(structures, threshold, max_multiples)
+        for i in range(15):
+            # Shuffle structures randomly
+            random.shuffle(files)
+            structures, structure_names = read_vasp_files(files)
 
-        print_results(structures, results, all_lengths, threshold, structure_names)
-        updatepositions(structures, results[0][0]['multiples'] if len(structures) == 2 else results[0]['multiples'], 
-                      structure_names, mean_len)
-        logger.info("Multilayer generation completed successfully")
+            #n_cells_input = [1,1,1,1,1,1] #input("Give a list of n_cells: ")
+            #n_cells = ast.literal_eval(n_cells_input)
+            n_cells = [1,1,1,1,1,1]
+            updatepositions(structures, [int(n) for n in n_cells], structure_names)
+
+            logger.info("Multilayer generation completed successfully")
         
     except Exception as e:
         if logger:
@@ -392,3 +361,5 @@ def build_multilayers():
             print(f"Error in multilayer generation: {str(e)}", file=sys.stderr)
         sys.exit(1)
 
+if __name__ == "__main__":
+    main()
