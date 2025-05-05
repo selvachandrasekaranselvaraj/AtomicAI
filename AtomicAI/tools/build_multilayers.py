@@ -263,7 +263,7 @@ def get_nonredundant_permutations(files: List[str]) -> List[tuple]:
     
     return perms[:math.factorial(n-1)]  # Only need (n-1)! permutations
 
-def main():
+def build_multilayers():
     """Main execution function - now testing ALL permutations"""
     setup_logging()
     
