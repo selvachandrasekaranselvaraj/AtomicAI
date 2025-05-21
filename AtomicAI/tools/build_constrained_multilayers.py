@@ -17,6 +17,7 @@ Key Features:
 - Comprehensive error handling
 """
 
+import itertools
 import random
 import ast
 import sys
@@ -36,18 +37,21 @@ from ase.build import make_supercell
 # Global logger variable
 logger = None
 
-def setup_logging(structure_names):
-    """Initialize logging to both console and file with dynamic naming"""
-    log_filename = f"{'_'.join(structure_names)}.log"
+def setup_logging():
+    """Initialize logging to both console and fixed file"""
+    files = sys.argv[1:]
+    names = '_'.join([os.path.splitext(f)[0] for f in files])
+    log_filename = f"{names}.log"
     logging.basicConfig(
         level=logging.INFO,
         format='%(message)s',
         handlers=[
-            logging.FileHandler(log_filename),
+            logging.FileHandler(log_filename, mode='w'),
             logging.StreamHandler()
         ]
     )
     return logging.getLogger(__name__)
+
 
 def read_vasp_files(filenames):
     """
@@ -62,8 +66,6 @@ def read_vasp_files(filenames):
     try:
         structures = [read(f) for f in filenames]
         names = [os.path.splitext(f)[0] for f in filenames]
-        global logger
-        logger = setup_logging(names)
         logger.info(f"Successfully read {len(structures)} structures: {', '.join(names)}")
         return structures, names
     except Exception as e:
@@ -76,110 +78,6 @@ def read_vasp_files(filenames):
 def lcm(a, b):
     """Calculate least common multiple using math.gcd"""
     return a * b // gcd(a, b)
-
-def analyze_vectors_2(structures, threshold, max_multiples):
-    """
-    Find minimal multiples with mismatch < threshold for structure pairs
-    
-    Args:
-        structures (list): List of ASE Atoms objects
-        threshold (float): Maximum allowed mismatch percentage
-        max_multiples (int): Maximum supercell multiples to consider
-        
-    Returns:
-        tuple: (analysis results, array of vector lengths)
-    """
-    vec_names = ['a', 'b', 'c']
-    all_norms = np.array([[np.linalg.norm(v) for v in s.get_cell()] for s in structures])
-    results = []
-
-    for (s1, s2) in combinations(range(len(structures)), 2):
-        struct_results = []
-        for (v1, v2) in combinations_with_replacement(range(3), 2):
-            best = None
-            for total in range(2, 2 * max_multiples + 1):
-                for i1 in range(1, min(total, max_multiples + 1)):
-                    i2 = total - i1
-                    if not (1 <= i2 <= max_multiples):
-                        continue
-
-                    len1, len2 = i1 * all_norms[s1,v1], i2 * all_norms[s2,v2]
-                    mismatch = abs(len1 - len2) / min(len1, len2) * 100
-
-                    if mismatch < threshold:
-                        best = {
-                            'structures': (s1+1, s2+1),
-                            'vectors': (vec_names[v1], vec_names[v2]),
-                            'lengths': (all_norms[s1,v1], all_norms[s2,v2]),
-                            'multiples': (i1, i2),
-                            'scaled_lengths': (len1, len2),
-                            'mismatch%': mismatch,
-                            'sum': i1 + i2
-                        }
-                        break
-                if best:
-                    break
-            struct_results.append(best or {
-                'structures': (s1+1, s2+1),
-                'vectors': (vec_names[v1], vec_names[v2]),
-                'lengths': (all_norms[s1,v1], all_norms[s2,v2]),
-                'multiples': None,
-                'scaled_lengths': None,
-                'mismatch%': None,
-                'sum': None
-            })
-        results.append(struct_results)
-    return results, all_norms
-
-def analyze_vectors_3(structures, threshold, n_multiples):
-    """
-    Analyze vectors across all structures and find minimal multiples
-    
-    Args:
-        structures (list): List of ASE Atoms objects
-        threshold (float): Maximum allowed mismatch percentage
-        n_multiples (int): Maximum supercell multiples to consider
-        
-    Returns:
-        tuple: (analysis results, array of vector lengths)
-    """
-    vec_names = ['a', 'b', 'c']
-    all_lengths = np.array([[np.linalg.norm(v) for v in s.get_cell()] for s in structures])
-    n_structures = len(structures)
-    results = []
-
-    for vec_idx in range(3):
-        multiples = np.arange(1, n_multiples+1)[:, None] * all_lengths[:, vec_idx]
-        best = None
-        min_sum = float('inf')
-
-        for indices in product(range(n_multiples), repeat=n_structures):
-            current_multiples = [i+1 for i in indices]
-            current_lengths = [multiples[i,j] for j, i in enumerate(indices)]
-            min_len, max_len = min(current_lengths), max(current_lengths)
-            mismatch = (max_len - min_len)/min_len * 100
-
-            if mismatch < threshold and sum(current_multiples) < min_sum:
-                min_sum = sum(current_multiples)
-                best = {
-                    'vector': vec_names[vec_idx],
-                    'multiples': current_multiples,
-                    'lengths': current_lengths,
-                    'mismatch%': mismatch,
-                    'min_length': min_len,
-                    'max_length': max_len
-                }
-                if min_sum == n_structures:  # Early exit for perfect match
-                    break
-        results.append(best or {
-            'vector': vec_names[vec_idx],
-            'multiples': None,
-            'lengths': None,
-            'mismatch%': None,
-            'min_length': None,
-            'max_length': None
-        })
-    return results, all_lengths
 
 def print_results(structures, results, all_lengths, threshold, structure_names):
     """
@@ -229,7 +127,7 @@ def print_results(structures, results, all_lengths, threshold, structure_names):
             else:
                 logger.info(f"{res['vector']:<6}  {'-':11}  {'-':11}  {'No match':<8}  {'-':<9}")
 
-def supercell(data, nx, ny, nz, name):
+def supercell(data, nx, ny, nz, name, ith):
     """
     Generate supercell from base structure
     
@@ -243,7 +141,8 @@ def supercell(data, nx, ny, nz, name):
     """
     multiplier = np.identity(3) * [nx, ny, nz]
     data = make_supercell(data, multiplier)
-    logger.info(f'Number of atoms in {name} supercell: {len(data.positions)}')
+    if ith == 1:
+       logger.info(f'Number of atoms in {name} supercell: {len(data.positions)}')
 
     # Sort atoms by element
     elements, positions = list(data.symbols), data.positions.T
@@ -279,7 +178,7 @@ def find_positionsB(atomsA, atomsB):
     
     return positionsB
 
-def updatepositions(input_data, n_cells, structure_names):
+def updatepositions(input_data, n_cells, structure_names, ith):
     """
     Generate multilayer structure from component structures
     
@@ -296,11 +195,12 @@ def updatepositions(input_data, n_cells, structure_names):
     cells = []
     m_cell = np.mean([c.cell for c in input_data], axis=0)
     
-    logger.info("\nBuilding multilayer structure:")
+    if ith == 1:
+        logger.info("\nBuilding multilayer structure:")
     for i, (atoms,n,  name) in enumerate(zip(input_data, n_cells, structure_names)):
         m_cell[2] = atoms.cell[2]
         atoms.set_cell(m_cell, scale_atoms=True)
-        atoms = supercell(atoms, 1, 1, n, name) 
+        atoms = supercell(atoms, 1, 1, n, name, ith) 
         cell = atoms.cell
         cells.append(cell)
         if i == 0:
@@ -320,12 +220,12 @@ def updatepositions(input_data, n_cells, structure_names):
                           key=lambda k: chemical_symbols.index(combined_atoms[k].symbol))
     combined_atoms = combined_atoms[sorted_indices]
 
-    logger.info(f'\nFinal multilayer structure:')
-    logger.info(f'Total atoms: {len(combined_atoms.positions)}')
-    # Correct way to calculate norms of cell vectors
-    cell_norms = [f"{np.linalg.norm(v):3.3f}" for v in combined_atoms.cell]
-    logger.info(f'Cell vectors (Å):{cell_norms}')
-    #logger.info(f'Cell vectors (Å):\n{combined_atoms.cell}')
+    if ith == 1:
+       logger.info(f'\nFinal multilayer structure:')
+       logger.info(f'Total atoms: {len(combined_atoms.positions)}')
+       # Correct way to calculate norms of cell vectors
+       cell_norms = [f"{np.linalg.norm(v):3.3f}" for v in combined_atoms.cell]
+       logger.info(f'Cell vectors (Å):{cell_norms}')
 
     # Write output files
     write(out_file, combined_atoms, vasp5=True, sort=True)
@@ -333,33 +233,52 @@ def updatepositions(input_data, n_cells, structure_names):
     
     return combined_atoms
 
+import itertools
+
 def main():
-    """Main execution function"""
+    global logger
+    logger = setup_logging()
+
     try:
         if len(sys.argv) < 2:
             print(f"Usage: {sys.argv[0]} POSCAR1 POSCAR2 [POSCAR3 ...]", file=sys.stderr)
             sys.exit(1)
-        
+
         files = sys.argv[1:]
-        
-        for i in range(15):
-            # Shuffle structures randomly
-            random.shuffle(files)
-            structures, structure_names = read_vasp_files(files)
 
-            #n_cells_input = [1,1,1,1,1,1] #input("Give a list of n_cells: ")
-            #n_cells = ast.literal_eval(n_cells_input)
-            n_cells = [1,1,1,1,1,1]
-            updatepositions(structures, [int(n) for n in n_cells], structure_names)
+        all_structures, all_names = read_vasp_files(files)
+        structure_dict = dict(zip(all_names, all_structures))
 
-            logger.info("Multilayer generation completed successfully")
-        
+        generated_set = set()
+        counter = 1
+
+        logger.info("Generating unique multilayer structures (excluding mirrored permutations)...\n")
+
+        for combo in itertools.permutations(all_names):
+            name_key = "_".join(combo)
+            reverse_key = "_".join(reversed(combo))
+
+            # Skip if this or its reverse has already been generated
+            if name_key in generated_set or reverse_key in generated_set:
+                continue
+
+            generated_set.add(name_key)
+            selected_structures = [structure_dict[name] for name in combo]
+            n_cells = [1] * len(selected_structures)
+
+            updatepositions(selected_structures, n_cells, list(combo), counter)
+            counter += 1
+
+        logger.info(f"\nSummary: {counter - 1} unique multilayer structures generated.")
+        logger.info("Multilayer generation completed successfully\n")
+
     except Exception as e:
         if logger:
             logger.error(f"Error in multilayer generation: {str(e)}", exc_info=True)
         else:
             print(f"Error in multilayer generation: {str(e)}", file=sys.stderr)
         sys.exit(1)
+
 
 if __name__ == "__main__":
     main()
