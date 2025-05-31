@@ -45,7 +45,8 @@ setup(
     license='MIT',
 
 
-    packages=["AtomicAI"], #find_packages(),
+    #packages=["AtomicAI"], #find_packages(),
+    packages=find_packages(),
     classifiers=[
         "Intended Audience :: Science/Research",
         "Programming Language :: Python :: 3.9",
