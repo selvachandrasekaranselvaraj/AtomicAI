@@ -112,7 +112,7 @@ write_data after_nvt_.dat
     print("LAMMPS input file generated successfully.")
     
     print("LAMMPS input file generated successfully.")
-    job_name = 'npt'+''.join([s[0] for s in get_elements(data_file)])
+    job_name = 'nvt'+''.join([s[0] for s in get_elements(data_file)])
     
     job_submit(job_name)
 
