@@ -27,6 +27,10 @@ def vasp2xyz():
         fractional_positions = np.dot(positions, inverse_cell)
         convert_positions = fractional_positions % 1.0
         atoms.positions = np.dot(convert_positions, cell)
+        # Sort atoms alphabetically by symbol
+        sorted_indices = np.argsort(atoms.get_chemical_symbols())
+        atoms_sorted = atoms[sorted_indices]
+        atoms = atoms_sorted
         return atoms
 
 

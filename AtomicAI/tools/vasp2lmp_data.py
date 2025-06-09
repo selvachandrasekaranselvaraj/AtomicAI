@@ -1,6 +1,8 @@
 import os, sys
 from ase.io import read, write
 from ase.io import lammpsdata
+import numpy as np
+
 def vasp2lmp_data():
     try:
         input_file = sys.argv[1]
@@ -23,6 +25,12 @@ def vasp2lmp_data():
         print('Input file is not POSCAR or .vasp')
         exit()
 
-    lammpsdata.write_lammps_data(out_file, a_vasp, masses=True)
+    # Sort atoms alphabetically by symbol
+    sorted_indices = np.argsort(a_vasp.get_chemical_symbols())
+    atoms_sorted = a_vasp[sorted_indices]
+
+    # Update positions if needed (e.g., shift or remove atoms)
+    # Here, we assume no specific updates are needed, but you can modify as required.
+    lammpsdata.write_lammps_data(out_file, atoms_sorted, masses=True)
     return
 

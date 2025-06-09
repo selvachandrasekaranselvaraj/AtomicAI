@@ -17,7 +17,13 @@ def updatepositions(atoms, x_shift, y_shift, z_shift):
     for i, p in enumerate(positions):
         positions[i] = np.array([p[0] + x_shift, p[1] + y_shift, p[2] + z_shift])#
     atoms.positions = positions #np.dot(convert_positions, cell)
-    return atoms
+    atoms.cell = cell  # Keep the original cell unchanged
+
+    # Sort atoms alphabetically by symbol
+    sorted_indices = np.argsort(atoms.get_chemical_symbols())
+    atoms_sorted = atoms[sorted_indices]
+
+    return atoms_sorted
 
 def vasp2vasp():
     try:
