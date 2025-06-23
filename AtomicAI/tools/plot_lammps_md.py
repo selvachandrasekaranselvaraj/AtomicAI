@@ -278,7 +278,10 @@ def plotly_plot(n_files,
 
     try:
         x = np.array(df['Time']).astype(float) * 1e-12 / 1e-9  # time in ns
-    except KeyError:
+        # Check continuity
+        if not np.allclose(np.diff(x), np.diff(x)[0]):
+            raise ValueError("Non-uniform or discontinuous 'Time' detected")
+    except (KeyError, ValueError):
         #x = np.array(df['Step']).astype(float) * 1e-15 / 1e-9  # time in ns
         x = np.arange(1, len(df['Step'])) * 1e-15 / 1e-9  # time in ns
 
@@ -421,15 +424,19 @@ def read_input_file(file_path, starting_word, ending_word):
     ensembles, n_atoms = determine_ensemble(file_path)
     df['PotEng'] /= n_atoms
     df['Press'] /= n_atoms
-    df_limit = df.iloc[int(len(df) * 0.01):]
 
-    #y_labels = data[0][1:len(data[0])-1]
+    if 'Cella' in df.columns and 'Cellb' in df.columns and 'Cellc' in df.columns:
+        df['Volume'] = df['Cella'] * df['Cellb'] * df['Cellc']
 
-    if 'NVT' in ensembles:
-        y_labels = ['Temp', 'PotEng', 'Press', 'Volume']
-    if 'NPT' in ensembles:
-        y_labels = ['Temp', 'PotEng', 'Press', 'Volume']
-        #y_labels = ['Temp', 'PotEng', 'Press', 'Cella', 'Cellb',  'Cellc']
+    df_limit = df.iloc[int(len(df) * 0.02):]  # remove first 2% of data
+    y_labels = ['Temp', 'PotEng', 'Press', 'Volume']
+
+
+    #if 'NVT' in ensembles:
+    #    y_labels = ['Temp', 'PotEng', 'Press', 'Volume']
+    #if 'NPT' in ensembles:
+    #    #y_labels = ['Temp', 'PotEng', 'Press', 'Volume']
+    #    y_labels = ['Temp', 'PotEng', 'Press', 'Cella', 'Cellb',  'Cellc']
     y_ranges_max = [max(np.array(df_limit[key].astype(float))) for key in y_labels]
     y_ranges_min = [min(np.array(df_limit[key].astype(float))) for key in y_labels]
     return df_limit, y_labels, y_ranges_max, y_ranges_min
@@ -450,7 +457,6 @@ def plot_lammps_md():
                 print("No log.lammps file is available HERE!!!")
                 print("Usage: python plot_lammps_md.py file_name1 file_name2 file_name3 ...")
                 exit()
-
     #filenames = ['340.log']#, '360.log', '380.log', '400.log']
     #filenames = ['log.lammps']
     legend_grand = len(filenames) > 1 
@@ -485,8 +491,16 @@ def plot_lammps_md():
                           y_ranges_min, 
                           legend_grand)
 
-    print(f"md_plots.png is writing...")
-    fig.write_html('md_plots.html')
-    fig.write_image('md_plots.png')
-    print(f"md_plots.png is DONE")
+    if len(filenames) == 1:
+        plot_name = filenames[0].split('.')[0]
+        print(f"{plot_name}.png is writing...")
+        fig.write_html(f"{plot_name}.html")
+        fig.write_image(f"{plot_name}.png", scale=2)
+        print(f"{plot_name}.png is DONE")
+
+    else:
+        print(f"md_plots.png is writing...")
+        fig.write_html('md_plots.html')
+        fig.write_image('md_plots.png', scale=2)
+        print(f"md_plots.png is DONE")
     return fig.show()
