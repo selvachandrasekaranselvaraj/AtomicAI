@@ -7,7 +7,7 @@ from AtomicAI.tools.vaspDB_vc_inputs import (
     make_output_folder, setup_aimd_folders
 )
 
-def vaspDB_aimd_inputs":
+def vaspDB_aimd_inputs():
     base_dirs = sys.argv[1:] if len(sys.argv) > 1 else [d for d in os.listdir(".") if os.path.isdir(d)]
 
     for base_folder in base_dirs:
