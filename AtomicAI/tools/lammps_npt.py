@@ -62,7 +62,7 @@ atom_style      atomic
 
 # Variables
 variable read_data_file string "{data_file}"
-variable pair_style_type string "mlpot.dp"
+variable pair_style_type string "mlpot.pb"
 variable dump_file1 string "dump_unwrapped.lmp"
 variable dump_file2 string "dump.lmp"
 
@@ -174,7 +174,7 @@ write_data minimized_structure.dat
     directory = "./"
 
     # List of files to check
-    files_to_check = ['data.lmp_data', 'mlpot.dp', 'in.lammps', 'sub.sh']
+    files_to_check = ['data.lmp_data', 'mlpot.pb', 'in.lammps', 'sub.sh']
 
     # Check for the existence of each file
     for filename in files_to_check:

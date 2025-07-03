@@ -31,5 +31,7 @@ vasp2cq = AtomicAI.tools.vasp2cq:vasp2cq
 vasp2lmp_data = AtomicAI.tools.vasp2lmp_data:vasp2lmp_data
 vasp2vasp = AtomicAI.tools.vasp2vasp:vasp2vasp
 vasp2xyz = AtomicAI.tools.vasp2xyz:vasp2xyz
+vaspDB_aimd_run = AtomicAI.tools.vaspDB_aimd_inputs:vaspDB_vc_inputs
+vaspDB_vc_run = AtomicAI.tools.vaspDB_vc_inputs:vaspDB_vc_inputs
 wrap2unwrap = AtomicAI.tools.unwrapped:unwrapped
 xyz2vasp = AtomicAI.tools.xyz2vasp:xyz2vasp

@@ -273,7 +273,7 @@ def build_multilayers():
             sys.exit(1)
 
         max_multiples = 20
-        threshold = 9.0
+        threshold = 5.0
         z_gap = 2.3
         files = sys.argv[1:]
         

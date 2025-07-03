@@ -31,6 +31,7 @@ def vasp2lmp_data():
 
     # Update positions if needed (e.g., shift or remove atoms)
     # Here, we assume no specific updates are needed, but you can modify as required.
-    lammpsdata.write_lammps_data(out_file, atoms_sorted, masses=True)
+    lammpsdata.write_lammps_data(out_file, atoms_sorted, masses=True, force_skew=True, atom_style="atomic")
+    lammpsdata.write_lammps_data("data.lmp_data", atoms_sorted, masses=True, force_skew=True, atom_style="atomic")
     return
 

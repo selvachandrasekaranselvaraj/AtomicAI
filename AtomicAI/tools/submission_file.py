@@ -8,7 +8,6 @@ def job_submit(job_name):
 #PBS -A LTC
 #PBS -l walltime=72:00:00
 #PBS -N {job_name}
-#PBS -o sim.out
 #PBS -j n
 #PBS -m e
 
@@ -30,7 +29,6 @@ mpirun -np $NNODES /home/schandrasekaran/myopt/improv/lammps/bin/lmp_mpi -in in.
 #PBS -l select=1:mpiprocs=36
 #PBS -l walltime=4:00:00
 #PBS -N {job_name}
-#PBS -o sim.out
 #PBS -j n
 echo Working directory is $PBS_O_WORKDIR
 cd $PBS_O_WORKDIR
