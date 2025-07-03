@@ -19,6 +19,7 @@ ENCUT = {encut}
 EDIFF = 1E-5
 ISMEAR = 0
 SIGMA = 0.05
+ISPIN = 2
 IBRION = 2
 ISIF = 3
 NSW = 2000
