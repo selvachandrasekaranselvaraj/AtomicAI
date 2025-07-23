@@ -9,10 +9,10 @@ def surfaces(filename):
     structure = Structure.from_file(filename) #* (2,2,2)
    
     # Define the Miller indices for the surfaces we want to generate
-    miller_indices = [(1, 0, 0), (0, 1, 0), (0, 0, 1), 
-                      (1, 1, 0), (1, 0, 1), (0, 1, 1), 
-                      (1, 1, 1)]
-     
+    #miller_indices = [(1, 0, 0), (0, 1, 0), (0, 0, 1), 
+    #                  (1, 1, 0), (1, 0, 1), (0, 1, 1), 
+    #                  (1, 1, 1)]
+    #miller_indices = [(100), (200), (110), (220), (111), (222)]     
     # Create the "surfaces" folder if it doesn't exist
     if not os.path.exists("surfaces"):
         os.makedirs("surfaces")
@@ -25,7 +25,7 @@ def surfaces(filename):
         slab_gen = SlabGenerator(structure, 
                    miller_index = index, 
                    min_vacuum_size = 15,
-                   min_slab_size = 15,
+                   min_slab_size = 8.5,
                    #lll_reduce = True,
                    primitive = True, 
                    #reorient_lattice = True, 

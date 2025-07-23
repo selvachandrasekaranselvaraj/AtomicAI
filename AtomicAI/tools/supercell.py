@@ -9,9 +9,7 @@ def generate_supercell_vasp(input_file, scaling_matrix, output_vasp, cartesian=F
     
     # Original cell vectors
     original_cell = atoms.get_cell()
-    print("Original cell vectors:")
-    print(original_cell)
-    
+
     # Build transformation matrix (scaling in the original basis)
     transformation = np.diag(scaling_matrix)
     
@@ -38,6 +36,13 @@ def supercell():
         sys.exit(1)
     
     input_file = sys.argv[1]
+
+    atoms = ase.io.read(input_file)
+    # Original cell vectors
+    original_cell = atoms.get_cell()
+    print("Original cell vectors:")
+    print(original_cell)
+    
     
     try:
         x = int(input("Enter repetitions in x: "))

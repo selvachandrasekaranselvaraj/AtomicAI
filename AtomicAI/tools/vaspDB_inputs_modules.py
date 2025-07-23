@@ -11,11 +11,15 @@ from ase.geometry import get_distances
 hostname = socket.gethostname()
 if hostname.startswith("bebop"):
     base_dir = "/lcrc/project/LiO2SS/selva/dft_for_mlff/database"
+    npar = 4
 else:
     base_dir = "/Users/selva/workspace/mlff/database" 
+    npar = 16
+
+
 lda_u_elements = {"V": 3.1, "Cr": 3.5, "Mn": 4.0, "Fe": 4.0, "Co": 3.3, "Ni": 6.2, "Ce": 5.0, "U": 4.5}
-incar_base = """SYSTEM = {system}
-ENCUT = {encut}
+incar_base = f"""SYSTEM = {{system}}
+ENCUT = {{encut}}
 EDIFF = 1E-5
 ISMEAR = 0
 SIGMA = 0.05
@@ -23,13 +27,14 @@ ISPIN = 2
 IBRION = 2
 ISIF = 3
 NSW = 2000
-PREC = Accurate
+PREC = Normal
 LREAL = Auto
 ALGO = Normal
 LWAVE = .FALSE.
 LCHARG = .FALSE.
-
-{lda_u_section}
+LORBIT=11
+NPAR  = {npar}
+{{lda_u_section}}
 """
 lda_u_template = """LDAU = .TRUE.
 LDAUTYPE = 2
@@ -39,12 +44,18 @@ LDAUJ = {ldau_j}
 LDAUPRINT = 1
 """
 
-def expand_supercell_if_needed(poscar_file, min_natoms=90, max_natoms=160):
+def expand_supercell_if_needed(poscar_file, min_natoms=80, max_natoms=160):
     structure = read(poscar_file, format="vasp")
     natoms = len(structure)
-    if natoms >= min_natoms:
-        return poscar_file, natoms
     scaling_matrix = [1, 1, 1]
+    if min_natoms <= natoms <= max_natoms:
+        if poscar_file.endswith(".vasp"):
+            expanded_file = poscar_file[:-5] + "_expanded.vasp"
+        else:
+            expanded_file = poscar_file + "_expanded.vasp"
+        write(expanded_file, structure, format="vasp")
+        print(f"[INFO] POSCAR expanded with scaling matrix {scaling_matrix} -> {len(structure)} atoms.")
+        return expanded_file, natoms
     cell_lengths = np.linalg.norm(structure.get_cell(), axis=1)
     while True:
         est_natoms = natoms * np.prod(scaling_matrix)
@@ -57,7 +68,10 @@ def expand_supercell_if_needed(poscar_file, min_natoms=90, max_natoms=160):
     structure = make_supercell(structure, np.diag(scaling_matrix))
     sorted_indices = np.argsort(structure.get_chemical_symbols())
     structure_sorted = structure[sorted_indices]
-    expanded_file = poscar_file + "_expanded"
+    if poscar_file.endswith(".vasp"):
+        expanded_file = poscar_file[:-5] + "_expanded.vasp"
+    else:
+        expanded_file = poscar_file + "_expanded.vasp"
     write(expanded_file, structure_sorted, format="vasp")
     print(f"[INFO] POSCAR expanded with scaling matrix {scaling_matrix} -> {len(structure_sorted)} atoms.")
     return expanded_file, len(structure_sorted)
@@ -139,6 +153,7 @@ def get_kpoints(mag):
     elif mag <= 6: return 5
     elif mag <= 7: return 4
     elif mag <= 10: return 3
+    elif mag <= 12: return 2
     return 1
 
 def generate_kpoints(poscar_file, folder):
@@ -151,23 +166,25 @@ def generate_kpoints(poscar_file, folder):
         f.write(f"Auto KPOINTS\n0\nMP\n{kx} {ky} {kz}\n0 0 0\n")
 
 def write_submission_script(folder):
+    jobname = os.path.basename(os.path.abspath(folder))  # e.g., 'vc'
+    parentname = os.path.basename(os.path.dirname(os.path.abspath(folder)))  # e.g., 'Li2S8'
+    full_jobname = f"{parentname}_{jobname}"
     hostname = socket.gethostname()
     if hostname.startswith("bebop"):
-        sub_script = """#!/bin/bash -l
+        sub_script = f"""#!/bin/bash -l
 #PBS -A LiTFSi-LiPF6  
 #PBS -l select=1:mpiprocs=36
 #PBS -l walltime=72:00:00
-#PBS -N test1
+#PBS -N {full_jobname}
 #PBS -j n
 
 #  Availabel projects for comupting hours: LiTFSi-LiPF6 hexagon  SSE-LiO2   hydration_surface
 echo Working directory is $PBS_O_WORKDIR
 cd $PBS_O_WORKDIR
-NNODES=wc -l < $PBS_NODEFILE
+NNODES=`wc -l < $PBS_NODEFILE`
 echo "NNODES=" $NNODES
 
 echo Jobid: $PBS_JOBID
-echo Running on host hostname
 #echo Running on nodes cat $PBS_NODEFILE
 
 ulimit -s unlimited
@@ -176,17 +193,17 @@ module load  binutils/2.42   gcc/11.4.0   openmpi/5.0.3-gcc-11.4.0 vasp/6.4.3
 mpirun -np $NNODES vasp_std
 """
     else:
-        sub_script = """#!/bin/bash
+        sub_script = f"""#!/bin/bash
 #PBS -l select=1:ncpus=128:mpiprocs=128
 #PBS -A AlN
 #PBS -l walltime=72:00:00
-#PBS -N lgpslco
+#PBS -N {full_jobname}
 ##PBS -o vasp.out
 #PBS -j n
 #PBS -m e
 
 cd $PBS_O_WORKDIR
-NNODES=wc -l < $PBS_NODEFILE
+NNODES=`wc -l < $PBS_NODEFILE`
 echo "NNODES=" $NNODES
 
 module add gcc/13.2.0 openmpi/4.1.6-gcc-13.2.0 aocl/4.1.0-gcc-13.1.0
@@ -244,31 +261,84 @@ def find_safe_midpoint(point, vertices, cell, pbc):
 
     return best_point, best_min_dist, _
 
-def setup_aimd_folders(base_folder, vc_only=False):
-    vc_dir = os.path.join(base_folder, "vc")
+def should_use_spin(oszicar_path, threshold=0.15):
+    """
+    Return True if final mag in OSZICAR exceeds threshold (e.g., 0.05), else False.
+    """
+    if not os.path.isfile(oszicar_path):
+        print(f"[WARNING] OSZICAR not found at {oszicar_path}, assuming ISPIN=2")
+        return True
+    lines = [line for line in open(oszicar_path) if "F=" in line and "mag=" in line]
+    if not lines:
+        print(f"[WARNING] No mag info found in OSZICAR, assuming ISPIN=2")
+        return True
+    last_mag = float(lines[-1].split("mag=")[-1].strip())
+    return last_mag > threshold
+
+def setup_opt_folders(base_folder):
+    vc_dir = base_folder #os.path.join(base_folder, "vc")
     os.makedirs(vc_dir, exist_ok=True)
-    shutil.move(os.path.join(base_folder, "POSCAR"), os.path.join(vc_dir, "POSCAR"))
+
     elements = read_poscar_elements(os.path.join(vc_dir, "POSCAR"))
     quantities = read_poscar_quantities(os.path.join(vc_dir, "POSCAR"))
     generate_potcar(elements, vc_dir)
     encut = get_max_enmax_from_potcar(os.path.join(vc_dir, "POTCAR"))
-    incar = incar_base.format(system="-".join(elements), encut=f"{encut:.1f}", lda_u_section=generate_ldau_section(elements))
-    with open(os.path.join(vc_dir, "INCAR"), "w") as f: f.write(incar)
+    incar = incar_base.format(
+        system="-".join(elements),
+        encut=f"{encut:.1f}",
+        lda_u_section=generate_ldau_section(elements)
+    )
+    with open(os.path.join(vc_dir, "INCAR"), "w") as f:
+        f.write(incar)
     generate_kpoints(os.path.join(vc_dir, "POSCAR"), vc_dir)
     write_submission_script(vc_dir)
 
-    contcar = os.path.join(vc_dir, "POSCAR")
+def setup_aimd_folders(base_folder, vc_only=False):
+    vc_dir = os.path.join(base_folder, "vc")
+    os.makedirs(vc_dir, exist_ok=True)
+
+    shutil.move(os.path.join(base_folder, "POSCAR"), os.path.join(vc_dir, "POSCAR"))
+    elements = read_poscar_elements(os.path.join(vc_dir, "POSCAR"))
+    quantities = read_poscar_quantities(os.path.join(vc_dir, "POSCAR"))
+    encut = get_max_enmax_from_potcar(os.path.join(vc_dir, "POTCAR"))
+    incar = incar_base.format(
+        system="-".join(elements),
+        encut=f"{encut:.1f}",
+        lda_u_section=generate_ldau_section(elements)
+    )
+
+    if vc_only:
+        generate_potcar(elements, vc_dir)
+        with open(os.path.join(vc_dir, "INCAR"), "w") as f:
+            f.write(incar)
+        generate_kpoints(os.path.join(vc_dir, "POSCAR"), vc_dir)
+        write_submission_script(vc_dir)
+        return  # Only VC setup requested
+
+    contcar = os.path.join(vc_dir, "CONTCAR")
     if not os.path.isfile(contcar):
         print(f"[WARNING] CONTCAR not found in {vc_dir}. Run VC calculation first.")
         return
 
-    if vc_only:
-        return  # Stop after VC setup
+    # Determine AIMD ISPIN based on final mag
+    oszicar_path = os.path.join(vc_dir, "OSZICAR")
+    ispin_aimd = 2 if should_use_spin(oszicar_path) else 1
 
     # === AIMD folders ===
-    for name, scale in [("aimd_300", 1.00), ("c5_aimd_300", 0.95), ("e5_aimd_300", 1.05)]:
+    for name, scale in [("aimd", 1.00), ("aimd_c5", 0.95), ("aimd_e5", 1.05)]:
+
+        path = os.path.join(base_folder, name)
+        if os.path.exists(path):
+            print(f"\033[91m[WARNING] Folder {path} already exists.\033[0m")
+            print("Exits...")
+            #print(f"Check {path} before creating one.")
+            print(f"\033[91m***************************************\033[0m")
+            return None # path
+        os.makedirs(path, exist_ok=True)
+        print(f"[INFO] Created folder: {path}")
+
         run_dir = os.path.join(base_folder, name)
-        shutil.copytree(vc_dir, run_dir, dirs_exist_ok=True)
+        #shutil.copytree(vc_dir, run_dir, dirs_exist_ok=True)
         poscar = os.path.join(run_dir, "POSCAR")
         shutil.copy(contcar, poscar)
         if scale != 1.00:
@@ -277,7 +347,10 @@ def setup_aimd_folders(base_folder, vc_only=False):
             with open(poscar, "w") as f: f.writelines(lines)
         generate_potcar(read_poscar_elements(poscar), run_dir)
         encut = get_max_enmax_from_potcar(os.path.join(run_dir, "POTCAR"))
+
+
         incar = incar_base.format(system="-".join(elements), encut=f"{encut:.1f}", lda_u_section=generate_ldau_section(elements))
+        incar = incar.replace("ISPIN = 2", f"ISPIN = {ispin_aimd}")
         incar = incar.replace("ISIF = 3", "ISIF = 2")
         incar = incar.replace("IBRION = 2", "IBRION = 0") + "\nTEBEG = 200\nTEEND  = 500\nSMASS = 0\nPOTIM = 2.0\nISYM = 0\n"
         with open(os.path.join(run_dir, "INCAR"), "w") as f: f.write(incar)
@@ -286,7 +359,16 @@ def setup_aimd_folders(base_folder, vc_only=False):
 
     # === Surface folder ===
     run_dir = os.path.join(base_folder, "surface")
-    os.makedirs(os.path.join(run_dir), exist_ok=True)
+    path = run_dir #os.path.join(base_folder, name)
+    if os.path.exists(path):
+        print(f"\033[91m[WARNING] Folder {path} already exists.\033[0m")
+        print("Exits...")
+        #print(f"Check {path} before creating one.")
+        print(f"\033[91m***************************************\033[0m")
+        return None # path
+    os.makedirs(path, exist_ok=True)
+    print(f"[INFO] Created folder: {path}")
+
     structure = read(contcar, format="vasp")
     cell = structure.get_cell()
     cell[2, 2] += 12.0  # add vacuum along c-axis
@@ -299,7 +381,17 @@ def setup_aimd_folders(base_folder, vc_only=False):
 
     # === Defect folder ===
     run_dir = os.path.join(base_folder, "defect")
-    os.makedirs(os.path.join(run_dir), exist_ok=True)
+    path = run_dir #os.path.join(base_folder, name)
+    if os.path.exists(path):
+        print(f"\033[91m[WARNING] Folder {path} already exists.\033[0m")
+        print("Exits...")
+        #print(f"Check {path} before creating one.")
+        print(f"\033[91m***************************************\033[0m")
+        return None # path
+    os.makedirs(path, exist_ok=True)
+    print(f"[INFO] Created folder: {path}")
+
+    #os.makedirs(os.path.join(run_dir), exist_ok=True)
     structure = read(contcar, format="vasp")
 
     symbols = structure.get_chemical_symbols()
@@ -311,10 +403,14 @@ def setup_aimd_folders(base_folder, vc_only=False):
     moved = []
    
     # Move 1 atom of each element
+    if len(unique_elements) >= 3:
+        n_move = 1
+    else:
+        n_move = 2
     for el in unique_elements:
         moved_count = 0
         for i, sym in enumerate(symbols):
-            if sym == el and moved_count < 1:
+            if sym == el and moved_count < n_move:
                 pos = positions[i].copy()
                 offset = np.random.uniform(4.0, 5.0, size=3)
                 positions[i] = (pos + offset) % cell.diagonal()
@@ -340,43 +436,3 @@ def setup_aimd_folders(base_folder, vc_only=False):
     with open(os.path.join(run_dir, "INCAR"), "w") as f: f.write(incar)
     generate_kpoints(poscar, run_dir)
     write_submission_script(run_dir)
-"""
-if __name__=="__main__":
-    input_files = sys.argv[1:] if len(sys.argv) > 1 else glob("*.vasp")
-    if not input_files:
-        print("[ERROR] No input files given or found (*.vasp).")
-        sys.exit(1)
-
-    for input_file in input_files:
-        if input_file in ["POSCAR","CONTCAR"] or input_file.endswith(".vasp"):
-            if not os.path.isfile(input_file):
-                print(f"[ERROR] {input_file} not found, skipping.")
-                continue
-
-            print(f"\n=== Processing {input_file} ===")
-
-            # Step 1: Expand supercell if needed (returns expanded POSCAR file path)
-            expanded_file, natoms = expand_supercell_if_needed(input_file)
-            print(f"[INFO] Total atoms after possible expansion: {natoms}")
-
-            # Step 2: Read elements and quantities from the expanded POSCAR
-            elements = read_poscar_elements(expanded_file)  # you must have this function defined
-            quantities = read_poscar_quantities(expanded_file)  # you must have this function defined
-            print(f"[INFO] Elements: {elements}, Quantities: {quantities}")
-
-            # Step 3: Create unique output folder (skip if exists)
-            target_folder = make_output_folder(elements, quantities)
-            if target_folder is None:
-                if expanded_file:
-                    os.remove(expanded_file)
-                continue  # skip if folder already exists
-
-            # Step 4: Copy expanded POSCAR into target folder
-            shutil.move(expanded_file, os.path.join(target_folder, "POSCAR"))
-
-            # Step 5: Generate inputs directly into target folder
-            setup_aimd_folders(target_folder)
-
-        else:
-            print(f"[WARNING] {input_file} is not POSCAR/CONTCAR/.vasp, skipping.") 
-"""

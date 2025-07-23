@@ -71,7 +71,7 @@ setup(
         'lammps_npt_inputs=AtomicAI.tools.lammps_npt:generate_lammps_npt_inputs',
         'lammps_nvt_inputs=AtomicAI.tools.lammps_nvt:generate_lammps_nvt_inputs',
         'vaspDB_vc_run=AtomicAI.tools.vaspDB_vc_inputs:vaspDB_vc_inputs',
-        'vaspDB_aimd_run=AtomicAI.tools.vaspDB_aimd_inputs:vaspDB_vc_inputs',
+        'vaspDB_aimd_run=AtomicAI.tools.vaspDB_aimd_inputs:vaspDB_aimd_inputs',
         'wrap2unwrap=AtomicAI.tools.unwrapped:unwrapped',
         'build_interface=AtomicAI.tools.build_interface:build_interface',
         'build_multilayers=AtomicAI.tools.build_multilayers:build_multilayers',
