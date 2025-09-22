@@ -150,16 +150,16 @@ unfix 1
 # Write the minimized structure to a file
 write_data minimized_structure.dat
 """
-
     # Save the LAMMPS input to a file
     with open('in.lammps', 'w') as file:
         file.write(lammps_npt_input)
-    if temp_final > temp_init and temp_final > 800:
+    if temp_final > temp_init and temp_final > 500:
         with open('in.lammps', 'a') as file:
             file.write(lammps_npt_input_high_temp)
-    elif temp_final == temp_init and temp_final < 400:
+    elif temp_final > temp_init or temp_final <= 500:
         with open('in.lammps', 'a') as file:
             file.write(lammps_npt_input_room_temp)
+
     else:
         print(f"Input temperatures are not correct: {temp_final, temp_init}")
         exit

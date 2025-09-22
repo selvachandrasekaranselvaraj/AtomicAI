@@ -41,9 +41,13 @@ echo Running on host `hostname`
 
 ulimit -s unlimited
 
-module load  binutils/2.42   gcc/11.4.0   openmpi/5.0.3-gcc-11.4.0
+module use ~/modules
+module load deepmd-lammps/2Aug2023
+mpirun -np $NNODES lmp_mpi <in.lammps
 
-mpirun -np $NNODES /home/schandrasekaran/myopt/bebop/test/lammps/src/lmp_mpi <in.lammps
+#module load  binutils/2.42   gcc/11.4.0   openmpi/5.0.3-gcc-11.4.0 vasp/6.4.3 
+#mpirun -np $NNODES vasp_std
+
 
 #autopsy dump_unwrapped.lmp #--atoms Li
 """
