@@ -24,7 +24,7 @@ def surfaces(filename):
         slab_gen = SlabGenerator(structure, 
                    miller_index = index, 
                    min_vacuum_size = 1,
-                   min_slab_size =3,
+                   min_slab_size =30,
                    in_unit_planes = True,
                    #lll_reduce = True,
                    primitive = True, 

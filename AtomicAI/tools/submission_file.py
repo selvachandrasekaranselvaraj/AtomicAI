@@ -57,7 +57,7 @@ mpirun -np $NNODES lmp_mpi <in.lammps
 #SBATCH --ntasks-per-node=104
 #SBATCH -N 1
 #SBATCH -t 72:00:00
-#SBATCH -A ltctest
+#SBATCH -A lips
 #SBATCH --error=%J.stderr
 #SBATCH --output=%J.stdout
 ulimit -s unlimited
