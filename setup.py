@@ -19,10 +19,9 @@ install_requires = [
 setup(
     name='AtomicAI',
     version='0.4.0',
-    token='selva',
     author='Selva Chandrasekaran Selvaraj',
     author_email='selvachandrasekar.s@gmail.com',
-    description='Processing and visualization of atomic coordinates \n Featurizing atomic structures',
+    description='Processing and visualization of atomic coordinates; featurizing atomic structures',
     long_description=long_description,
     long_description_content_type="text/markdown",
     url='https://sites.google.com/view/selvas',
