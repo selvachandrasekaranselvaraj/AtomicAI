@@ -193,13 +193,13 @@ def get_neighbour_lst(xij: np.float64, yij: np.float64, zij: np.float64,
 @jit
 def get_gr_nblst(
         xij: np.float64, yij: np.float64, zij: np.float64,
-        atomic_type_list: np.int,
+        atomic_type_list: np.int64,
         m_x: np.float64, m_y: np.float64, m_z: np.float64,
         params_gr_list: np.float64,
         cutoff_descriptor: float,
         n_species: int,
-        nb_index: np.int,
-        nb_index_shift: np.int,
+        nb_index: np.int64,
+        nb_index_shift: np.int64,
         nb_r2_lst: np.float64,
 ):
     """
@@ -243,7 +243,7 @@ def get_gr_nblst(
 @jit
 def get_gr(
         xij: np.float64, yij: np.float64, zij: np.float64,
-        atomic_type_list: np.int,
+        atomic_type_list: np.int64,
         lattice_a: np.float64, lattice_b: np.float64, lattice_c: np.float64,
         params_2b_list: np.float64,
         cutoff_descriptor: float,
@@ -307,7 +307,7 @@ def get_gr(
 @jit
 def get_grga(
         xij: np.float64, yij: np.float64, zij: np.float64,
-        atomic_type_list: np.int,
+        atomic_type_list: np.int64,
         m_x: np.float64, m_y: np.float64, m_z: np.float64,
         params_g4_list: np.float64,
         cutoff_descriptor: float,
@@ -417,13 +417,13 @@ def get_grga(
 @jit
 def get_ga_nblst(
         xij: np.float64, yij: np.float64, zij: np.float64,
-        atomic_type_list: np.int,
+        atomic_type_list: np.int64,
         m_x: np.float64, m_y: np.float64, m_z: np.float64,
         params_ga_list: np.float64,
         cutoff_descriptor: float,
         n_species: int,
-        nb_index: np.int,
-        nb_index_shift: np.int,
+        nb_index: np.int64,
+        nb_index_shift: np.int64,
         nb_r2_lst: np.float64,
 ):
     """

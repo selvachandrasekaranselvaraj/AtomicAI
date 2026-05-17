@@ -202,7 +202,7 @@ class ACSF:
 @jit
 def get_g2(
         xij: np.float64, yij: np.float64, zij: np.float64,
-        atomic_type_list: np.int,
+        atomic_type_list: np.int64,
         lattice_a: np.float64, lattice_b: np.float64, lattice_c: np.float64,
         params_2b_list: np.float64,
         cutoff_descriptor: float,
@@ -266,7 +266,7 @@ def get_g2(
 @jit
 def get_g3(
         xij: np.float64, yij: np.float64, zij: np.float64,
-        atomic_type_list: np.int,
+        atomic_type_list: np.int64,
         lattice_a: np.float64, lattice_b: np.float64, lattice_c: np.float64,
         params_g3_list: np.float64,
         cutoff_descriptor: float,
@@ -328,7 +328,7 @@ def get_g3(
 @jit
 def get_g4(
         xij: np.float64, yij: np.float64, zij: np.float64,
-        atomic_type_list: np.int,
+        atomic_type_list: np.int64,
         m_x: np.float64, m_y: np.float64, m_z: np.float64,
         params_g4_list: np.float64,
         cutoff_descriptor: float,
@@ -438,7 +438,7 @@ def get_g4(
 @jit
 def get_g5(
         xij: np.float64, yij: np.float64, zij: np.float64,
-        atomic_type_list: np.int,
+        atomic_type_list: np.int64,
         m_x: np.float64, m_y: np.float64, m_z: np.float64,
         params_g5_list: np.float64,
         cutoff_descriptor: float,
@@ -698,7 +698,7 @@ class ACSF_Force:
 @jit
 def get_v2b(
         xij: np.float64, yij: np.float64, zij: np.float64,
-        atomic_type_list: np.int,
+        atomic_type_list: np.int64,
         m_x: np.float64, m_y: np.float64, m_z: np.float64,
         params_2b_list: np.float64,
         cutoff_descriptor: float,
@@ -762,7 +762,7 @@ def get_v2b(
 @jit
 def get_v3b(
         xij: np.float64, yij: np.float64, zij: np.float64,
-        atomic_type_list: np.int,
+        atomic_type_list: np.int64,
         m_x: np.float64, m_y: np.float64, m_z: np.float64,
         params_v3b_list: np.float64,
         cutoff_descriptor: float,

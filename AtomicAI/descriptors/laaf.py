@@ -33,7 +33,7 @@ def calculate_eta(r0: float = 0.45, cutoff_descriptor: float = 5.0, number_of_et
 @jit
 def calculate_fingerprint_vector(
         x_ij: np.float64, y_ij: np.float64, z_ij: np.float64,
-        atomic_type_list: np.int,
+        atomic_type_list: np.int64,
         lattice_a: np.float64, lattice_b: np.float64, lattice_c: np.float64,
         # fingerprint_center_atom_i: int,
         eta_all_list: np.float64,
