@@ -5,17 +5,11 @@ from pymatgen.core.surface import SlabGenerator
 from pymatgen.io.vasp import Poscar
 
 def surfaces(filename):
-    # Read the input structure
-    structure = Structure.from_file(filename) #* (2,2,2)
-   
-    # Define the Miller indices for the surfaces we want to generate
-    #miller_indices = [(1, 0, 0), (0, 1, 0), (0, 0, 1), 
-    #                  (1, 1, 0), (1, 0, 1), (0, 1, 1), 
-    #                  (1, 1, 1)]
-    #miller_indices = [(100), (200), (110), (220), (111), (222)]     
-    # Create the "surfaces" folder if it doesn't exist
-    if not os.path.exists("surfaces"):
-        os.makedirs("surfaces")
+    structure = Structure.from_file(filename)
+    miller_indices = [(1, 0, 0), (0, 1, 0), (0, 0, 1),
+                      (1, 1, 0), (1, 0, 1), (0, 1, 1),
+                      (1, 1, 1)]
+    os.makedirs("surfaces", exist_ok=True)
     
     # Get the base name of the input file (without extension)
     base_name = os.path.splitext(os.path.basename(filename))[0]

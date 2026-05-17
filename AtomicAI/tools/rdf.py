@@ -187,32 +187,9 @@ def RDF():
 
 
 def supercell(data, rMax):
-    rMax = rMax*2
-    a, b, c = data.cell[0][0], data.cell[1][1], data.cell[2][2]
-    #print(f'a={a}, b={b}, c={c} Angstrom')
-    x_ = y_ = z_ = 1
-    while rMax > a:
-        x_ += 1  # Increment x_ by 1
-        a *= x_
-
-    while rMax > b:
-        y_ += 1  # Increment x_ by 1
-        b *= y_
-
-    while rMax > c:
-        z_ += 1  # Increment x_ by 1
-        c *= z_
-
-    multiplier = np.identity(3) * [x_, y_, z_]
-
-    data = make_supercell(data, multiplier)
-
-    elements, positions = list(data.symbols), data.positions.T
-    array = np.array([elements, positions[0], positions[1], positions[2]])
-    df = pd.DataFrame(array.T, columns=['Sy', 'x', 'y', 'z'])
-    df.index = elements
-    df = df.sort_index()
-    data.symbols = df['Sy']
-    array = np.array([list(df['x']), list(df['y']), list(df['z'])]).T
-    data.positions = array
-    return  data
+    rMax *= 2
+    cell_lengths = np.array([np.linalg.norm(data.cell[i]) for i in range(3)])
+    repeats = np.maximum(1, np.ceil(rMax / cell_lengths).astype(int))
+    data = make_supercell(data, np.diag(repeats))
+    sort_idx = np.argsort(data.get_chemical_symbols())
+    return data[sort_idx]

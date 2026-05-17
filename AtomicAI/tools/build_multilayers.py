@@ -1,25 +1,5 @@
 #!/usr/bin/env python3
-"""
-Multilayer Structure Generator for VASP Calculations
-
-This script performs the following key functions:
-1. Reads multiple VASP structure files (POSCAR/CONTCAR format)
-2. Analyzes lattice vectors to find optimal supercell multiples
-3. Generates commensurate supercells with minimal mismatch
-4. Stacks structures vertically to create multilayer systems
-5. Outputs combined structure in VASP format with comprehensive logging
-
-Key Features:
-- Automatic lattice vector matching with user-defined tolerance
-- Smart atomic position adjustment during stacking
-- Detailed logging of all operations
-- Support for both bilayer and multilayer systems
-- Comprehensive error handling
-"""
-
-"""
-Multilayer Structure Generator - All Permutations
-"""
+"""Multilayer Structure Generator - reads VASP files, finds commensurate supercells, and stacks them."""
 
 import sys, math
 import os
@@ -199,7 +179,6 @@ def build_multilayer(structures: List[Atoms], supercell_details: List[int],
     supercells = []
     for atoms, n, name in zip(structures, supercell_details, structure_names):
         sc = create_supercell(atoms, n, n, 1, name, ith_structure)
-        len_a = np.linalg.norm(sc.cell[0])
         supercells.append(sc)
 
     original_z = sum([s.cell[2][2] for s in supercells])
@@ -256,12 +235,9 @@ def get_nonredundant_permutations(files: List[str]) -> List[tuple]:
     if n <= 1:
         return [tuple(files)]
     
-    # Fix first element and permute the rest
     fixed = files[0]
     remaining = files[1:]
-    perms = [tuple([fixed] + list(p)) for p in permutations(remaining)]
-    
-    return perms[:math.factorial(n-1)]  # Only need (n-1)! permutations
+    return [tuple([fixed] + list(p)) for p in permutations(remaining)]
 
 def build_multilayers():
     """Main execution function - now testing ALL permutations"""
@@ -286,7 +262,7 @@ def build_multilayers():
             multiples = results[0][0]['multiples']
         else:
             multiples = results[0]['multiples']
-        
+      
         # Print initial analysis results
         print_results(initial_structures, results, lengths, threshold, initial_names)
         

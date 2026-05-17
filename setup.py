@@ -76,6 +76,7 @@ setup(
         'build_interface=AtomicAI.tools.build_interface:build_interface',
         'build_multilayers=AtomicAI.tools.build_multilayers:build_multilayers',
         'build_constrained_multilayers=AtomicAI.tools.build_constrained_multilayers:main',
+        'surfaces=AtomicAI.tools.surfaces:structures',
 
         'rdf=AtomicAI.tools.rdf:RDF',
         'structure_analysis=AtomicAI.tools.structure_analysis:structure_analysis',
