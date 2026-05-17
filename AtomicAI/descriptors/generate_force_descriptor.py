@@ -1,23 +1,56 @@
 # -*- coding: utf-8 -*-
 import warnings
-warnings.filterwarnings("ignore") 
-from AtomicAI.descriptors.force_descriptor_functions import * 
-import math, os, random, copy, sys
+warnings.filterwarnings("ignore")
+from AtomicAI.descriptors.force_descriptor_functions import *
+import argparse, math, os, random, copy, sys
 from time import time
 import numpy as np
 from AtomicAI.tools.select_snapshots import select_snapshots
 
+FP_TYPES = ['BP2b', 'Split2b3b_ss']
+
+
+def _parse_force_args():
+    parser = argparse.ArgumentParser(
+        description='Generate force descriptors from a trajectory.',
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog='Available fingerprint types:\n  ' + '\n  '.join(FP_TYPES),
+    )
+    parser.add_argument('input_file', help='Trajectory file (.xyz)')
+    parser.add_argument(
+        '--fp-type', '-f',
+        choices=FP_TYPES,
+        default='Split2b3b_ss',
+        dest='fp_type',
+        help='Force fingerprint type (default: Split2b3b_ss)',
+    )
+    parser.add_argument(
+        '--rc', '-r',
+        type=float,
+        default=10.5,
+        help='Cutoff radius in Angstrom for 2-body and 3-body terms (default: 10.5)',
+    )
+    parser.add_argument(
+        '--n2b',
+        type=int,
+        default=20,
+        help='Number of 2-body eta functions (default: 20)',
+    )
+    parser.add_argument(
+        '--n3b',
+        type=int,
+        default=10,
+        help='Number of 3-body eta functions (default: 10)',
+    )
+    return parser.parse_args()
 
 
 def generate_force_descriptors():
+    args = _parse_force_args()
     out_directory = './descriptors/'
-    if not os.path.isdir(out_directory):
-        os.makedirs(out_directory)
-    selected_frames, symbols = select_snapshots()
-    #print('No. of frame:', len(selected_frames))
-
-    # Calculate force descriptors
-    force_descriptor(selected_frames)
+    os.makedirs(out_directory, exist_ok=True)
+    selected_frames, _ = select_snapshots()
+    force_descriptor(selected_frames, fp_type=args.fp_type, rc=args.rc, n2b=args.n2b, n3b=args.n3b)
     return
 
 def writeout_fp(Xv,Fv,atomic_symbols, nfout):
@@ -54,35 +87,35 @@ def prepare_vforce(data_num_rand):
     return vforce
 
 
-def force_descriptor(selected_frames): # traj_file name
+def force_descriptor(selected_frames, fp_type='Split2b3b_ss', rc=10.5, n2b=20, n3b=10):
+    """Compute force descriptors for all atoms in selected_frames.
 
+    Parameters
+    ----------
+    fp_type : str
+        Fingerprint type — 'BP2b' (2-body Behler-Parrinello) or 'Split2b3b_ss' (split 2+3-body).
+    rc : float
+        Cutoff radius in Angstrom applied to both 2-body and 3-body terms.
+    n2b : int
+        Number of 2-body eta decay functions.
+    n3b : int
+        Number of 3-body eta decay functions.
+    """
+    if fp_type not in FP_TYPES:
+        print(f'Unknown fingerprint type {fp_type!r}. Choose from: {FP_TYPES}')
+        sys.exit(1)
 
     parameters = {
-        #      cut off for fingerprint
-        #        AA
-        'Rc2b': 1.5*7.0,
-        'Rc3b': 1.5*7.0,
-        'Reta': 1.5*7.0,
-        #        |    2-body term      |
-        #        |    Eta       |  Rs  |
-        #        min   max   num| dRs  |
-        #        AA    AA    int  AA
-        '2b'  : [-3.0, 1.0,  20,  2.5],
-        #      |  3-body term |
-        #      |        Eta   | Rs  | zeta | theta |
-        #      min   max   num| dRs | num  |  num  |
-        #      AA    AA    int|  AA | int  |  int  |
-        '3b': [-3.0, 1.0,  10,  10.5,   3,    10],
-        #        |split 3-body term|
-        #        | min   max   num|
-        #        | AA    AA    int|
-        'split3b': [-3.0, 1.0,  10]}
-
+        'Rc2b': rc,
+        'Rc3b': rc,
+        'Reta': rc,
+        '2b':      [-3.0, 1.0, n2b, 2.5],
+        '3b':      [-3.0, 1.0, n3b, rc,  3, 10],
+        'split3b': [-3.0, 1.0, n3b],
+    }
 
     seed_ran = 16835
-    fp_flag_lst = ['BP2b', 'LA2b3b', 'DerMBSF2b3b', 'Split2b3b_ss']
-    fpID, regID = 3, 2
-    fp_flag = fp_flag_lst[fpID]
+    fp_flag = fp_type
 
     main_start = time()
     nfout = './descriptors/force_descriptors.dat' #nf_all_list[nfi]

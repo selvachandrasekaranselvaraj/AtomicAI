@@ -1,23 +1,18 @@
-"""
-    Locally averaged atomic fingerprints (LAAF)
-    Only support two-body fingerprints
-"""
+"""Locally averaged atomic fingerprints (LAAF) — G2, G3, G4, G5, SOAP, MBSF."""
 import os
 import random
+import warnings
 from math import cos, sqrt
 
 import ase.io
 import numpy as np
 from numpy import exp
 from numba import jit
-<<<<<<< HEAD
-#from tqdm.auto import tqdm
-=======
->>>>>>> 5bcf4f0 (plot_lammps_md added)
+
 from AtomicAI.descriptors.acsf import ACSF
 from AtomicAI.descriptors.mbsf import MBSF
 from dscribe.descriptors import SOAP
-import warnings 
+
 warnings.filterwarnings("ignore")
 
 def calculate_eta(r0: float = 0.45, cutoff_descriptor: float = 5.0, number_of_eta: int = 100) -> list:
@@ -508,15 +503,21 @@ class AverageFingerprintCalculator:
 
         self.species = list(element_conversion.keys())
 
-        # Allowed descriptor types: 'custom', 'ACSF_G2', 'ACSF_G2G4'
-        allowed_descriptor_types = ['custom', 'ACSF_G2', 'ACSF_G4', 'ACSF_G2G4', 'SOAP', 'MBSF']
+        allowed_descriptor_types = [
+            'custom', 'ACSF_G2', 'ACSF_G3', 'ACSF_G4', 'ACSF_G5',
+            'ACSF_G2G4', 'ACSF_G2G4G5', 'SOAP', 'MBSF',
+        ]
         self.descriptor_type = descriptor_type
-        assert descriptor_type in allowed_descriptor_types, f'Invalid descriptor type {descriptor_type}. Stopping now'
+        assert descriptor_type in allowed_descriptor_types, \
+            f'Invalid descriptor type {descriptor_type!r}. Choose from: {allowed_descriptor_types}'
 
         local_descriptor_dict = {
             'ACSF_G2': ACSF,
+            'ACSF_G3': ACSF,
             'ACSF_G4': ACSF,
+            'ACSF_G5': ACSF,
             'ACSF_G2G4': ACSF,
+            'ACSF_G2G4G5': ACSF,
             'SOAP': SOAP,
             'MBSF': MBSF,
         }
@@ -549,21 +550,31 @@ class AverageFingerprintCalculator:
 
                 self.descriptor = local_descriptor_dict[descriptor_type](**descriptor_parameter_dict)
 
-            elif descriptor_type == 'ACSF_G4':
-                # Set G2 parameters
-                params_g2 = None
+            elif descriptor_type == 'ACSF_G3':
+                # G3: cosine basis functions parameterised by kappa
+                kappa_lst = np.linspace(0.5, 5.0, number_of_eta)
+                params_g3 = kappa_lst  # 1-D array of kappa values
 
-                # Set G4 parameters
+                descriptor_parameter_dict = {
+                    'cutoff_descriptor': cutoff_descriptor,
+                    'params_g3': params_g3,
+                    'species': self.species,
+                }
+                descriptor_parameter_dict.update(descriptor_parameters)
+                self.descriptor = local_descriptor_dict[descriptor_type](**descriptor_parameter_dict)
+
+            elif descriptor_type == 'ACSF_G4':
+                params_g2 = None
                 number_of_eta_g4 = 10
                 eta_list_g4 = calculate_eta(cutoff_descriptor=cutoff_descriptor, number_of_eta=number_of_eta_g4)
                 zeta_lst = [1, 2, 4, 16]
                 lambda_list = [-1, 1]
-                params_g4 = []
-                for eta0 in eta_list_g4:
-                    for zeta0 in zeta_lst:
-                        for lambda0 in lambda_list:
-                            params_g4.append([1.0 / (eta0 * eta0), zeta0, lambda0])
-                params_g4 = np.array(params_g4)
+                params_g4 = np.array([
+                    [1.0 / (e * e), z, l]
+                    for e in eta_list_g4
+                    for z in zeta_lst
+                    for l in lambda_list
+                ])
 
                 descriptor_parameter_dict = {
                     'cutoff_descriptor': cutoff_descriptor,
@@ -571,8 +582,30 @@ class AverageFingerprintCalculator:
                     'params_g4': params_g4,
                     'species': self.species,
                 }
-                descriptor_parameter_dict.update(descriptor_parameters)  # Use user input, if any
+                descriptor_parameter_dict.update(descriptor_parameters)
+                self.descriptor = local_descriptor_dict[descriptor_type](**descriptor_parameter_dict)
 
+            elif descriptor_type == 'ACSF_G5':
+                # G5: same angular form as G4 but without the r_jk cutoff term
+                params_g2 = None
+                number_of_eta_g5 = 10
+                eta_list_g5 = calculate_eta(cutoff_descriptor=cutoff_descriptor, number_of_eta=number_of_eta_g5)
+                zeta_lst = [1, 2, 4, 16]
+                lambda_list = [-1, 1]
+                params_g5 = np.array([
+                    [1.0 / (e * e), z, l]
+                    for e in eta_list_g5
+                    for z in zeta_lst
+                    for l in lambda_list
+                ])
+
+                descriptor_parameter_dict = {
+                    'cutoff_descriptor': cutoff_descriptor,
+                    'params_g2': params_g2,
+                    'params_g5': params_g5,
+                    'species': self.species,
+                }
+                descriptor_parameter_dict.update(descriptor_parameters)
                 self.descriptor = local_descriptor_dict[descriptor_type](**descriptor_parameter_dict)
 
             elif descriptor_type == 'ACSF_G2G4':
@@ -604,6 +637,36 @@ class AverageFingerprintCalculator:
                 }
                 descriptor_parameter_dict.update(descriptor_parameters)  # Use user input, if any
 
+                self.descriptor = local_descriptor_dict[descriptor_type](**descriptor_parameter_dict)
+
+            elif descriptor_type == 'ACSF_G2G4G5':
+                # G2 (radial) + G4 (3-body with r_jk) + G5 (3-body without r_jk)
+                rs_lst = [0.0]
+                params_g2 = np.array([
+                    [1.0 / (e * e), rs]
+                    for e in eta_list_g2
+                    for rs in rs_lst
+                ])
+                number_of_eta_ang = 10
+                eta_list_ang = calculate_eta(cutoff_descriptor=cutoff_descriptor, number_of_eta=number_of_eta_ang)
+                zeta_lst = [1, 2, 4, 16]
+                lambda_list = [-1, 1]
+                params_g4 = np.array([
+                    [1.0 / (e * e), z, l]
+                    for e in eta_list_ang
+                    for z in zeta_lst
+                    for l in lambda_list
+                ])
+                params_g5 = params_g4.copy()
+
+                descriptor_parameter_dict = {
+                    'cutoff_descriptor': cutoff_descriptor,
+                    'params_g2': params_g2,
+                    'params_g4': params_g4,
+                    'params_g5': params_g5,
+                    'species': self.species,
+                }
+                descriptor_parameter_dict.update(descriptor_parameters)
                 self.descriptor = local_descriptor_dict[descriptor_type](**descriptor_parameter_dict)
 
             elif descriptor_type == 'MBSF':

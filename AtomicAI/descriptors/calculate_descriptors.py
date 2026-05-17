@@ -1,97 +1,89 @@
-from AtomicAI.descriptors.laaf import AverageFingerprintCalculator
-<<<<<<< HEAD
-from AtomicAI.descriptors.force_descriptor import force_descriptor
-=======
->>>>>>> 5bcf4f0 (plot_lammps_md added)
-from AtomicAI.data.data_lib import descriptor_cutoff
-from AtomicAI.data.data_lib import no_mpi_processors
-from AtomicAI.tools.select_snapshots import select_snapshots
-import sys, os
+import sys, os, argparse
 import time, multiprocessing
-<<<<<<< HEAD
-import ase.io
 import numpy as np
-import pandas as pd
-#from mpi4py import MPI
-=======
-import numpy as np
->>>>>>> 5bcf4f0 (plot_lammps_md added)
+
+from AtomicAI.descriptors.laaf import AverageFingerprintCalculator
+from AtomicAI.data.data_lib import descriptor_cutoff, no_mpi_processors
+from AtomicAI.tools.select_snapshots import select_snapshots
+
+DESCRIPTOR_TYPES = [
+    'ACSF_G2',
+    'ACSF_G3',
+    'ACSF_G4',
+    'ACSF_G2G4',
+    'ACSF_G2G4G5',
+    'SOAP',
+    'MBSF',
+]
 
 
-def initialize_variables():
+def _parse_args():
+    parser = argparse.ArgumentParser(
+        description='Generate averaged atomic descriptors from a trajectory.',
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog='Available descriptor types:\n  ' + '\n  '.join(DESCRIPTOR_TYPES),
+    )
+    parser.add_argument('input_file', help='Trajectory file (.xyz)')
+    parser.add_argument(
+        '--descriptor', '-d',
+        choices=DESCRIPTOR_TYPES,
+        nargs='+',
+        default=['ACSF_G2', 'ACSF_G2G4', 'SOAP'],
+        metavar='TYPE',
+        help='Descriptor type(s) to compute (default: ACSF_G2 ACSF_G2G4 SOAP)',
+    )
+    parser.add_argument(
+        '--n-eta', '-n',
+        type=int,
+        default=50,
+        dest='n_eta',
+        help='Number of eta decay functions (default: 50)',
+    )
+    return parser.parse_args()
+
+
+def _build_jobs(descriptor_types, number_of_eta):
     job_variables = []
-    try:
-        input_file = sys.argv[1]
-    except:
-        print("Input error!!!!")
-        print("Usage: \"generate_descriptors traj_file with .xyz extension\"")
-        print()
-        exit()
-
     out_directory = './descriptors/'
-    if not os.path.isdir(out_directory):
-        os.makedirs(out_directory)
+    os.makedirs(out_directory, exist_ok=True)
 
     frames, symbols = select_snapshots()
-    print('No. of frame:', len(frames))
-    symbols_type = list(set(symbols))
+    print('No. of frames:', len(frames))
+    symbols_type = sorted(set(symbols))
+    target_elements = {sym: i for i, sym in enumerate(symbols_type)}
 
-    symbols = np.array(symbols)
-<<<<<<< HEAD
-=======
-    # Calculate force descriptors 
-    #force_descriptor(frames)
-
-
-
->>>>>>> 5bcf4f0 (plot_lammps_md added)
-    selected_indices = []
-    target_elements = {}
-    for sy_no, symbol in enumerate(symbols_type):
-        target_elements[symbol] = sy_no
-        indices = np.where(symbols == symbol)[0]
-        #if len(indices) > 5000:
-        #    indices = np.random.choice(len(indices), size=5000)
-        selected_indices.append(indices)
-        #print(selected_indices)
-
-<<<<<<< HEAD
-    # Calculate force descriptors 
-    #force_descriptor(frames)
-=======
->>>>>>> 5bcf4f0 (plot_lammps_md added)
-
-    # Calculate laaf descriptors 
-    descriptors_type = ['ACSF_G2', 'ACSF_G2G4', 'SOAP']
-
-
-    number_of_eta = 50 # number of decay functions
-    for des_type in descriptors_type:
-        for i in range(len(symbols_type)):  # Target_specie or target_element
-            t_specie = symbols_type[i]  # target specie
-            for j in range(len(symbols_type)): # target_neighbor_element
+    for des_type in descriptor_types:
+        for i, t_specie in enumerate(symbols_type):
+            for j, tne in enumerate(symbols_type):
                 if i >= j:
-                    tne = symbols_type[j]  # target_neighbor_element
-                    try:
-                        d_cutoff, a_cutoff = descriptor_cutoff[t_specie+'_'+tne]
-                    except:
-                        print(f'Descriptor cutoff data is not available for {t_specie}-{tnr} \n in AtomicAI/data/descriptor_cutoff.py file')
-                        exit()
-                    for d in d_cutoff: 
+                    key = f'{t_specie}_{tne}'
+                    if key not in descriptor_cutoff:
+                        print(f'Descriptor cutoff not available for {t_specie}-{tne}.'
+                              f' Add it to AtomicAI/data/data_lib.py.')
+                        sys.exit(1)
+                    d_cutoff, a_cutoff = descriptor_cutoff[key]
+                    for d in d_cutoff:
                         for a in a_cutoff:
-                            r_d = round(float(d),1) # Descriptor cutoff
-                            r_a = round(float(a),1) # Averaging cutoff
-                            job_variables.append([out_directory, r_d, r_a, des_type, frames, number_of_eta, target_elements, t_specie, tne])
-    return job_variables, frames 
+                            job_variables.append([
+                                out_directory,
+                                round(float(d), 1),
+                                round(float(a), 1),
+                                des_type,
+                                frames,
+                                number_of_eta,
+                                target_elements,
+                                t_specie,
+                                tne,
+                            ])
+    return job_variables, frames
 
-def calc_descriptor(variables):
+
+def _calc_descriptor(variables):
     out_directory, r_d, r_a, des_type, frames, number_of_eta, target_elements, t_specie, tne = variables
-    if 'ACSF' in des_type:
-        des_name = des_type.split('_')[1]
-    else:
-        des_name = des_type
-    
-    my_laaf = AverageFingerprintCalculator(
+    # Use the part after the first underscore as the file-name prefix (e.g. G2, G2G4, SOAP)
+    des_name = des_type.split('_', 1)[1] if '_' in des_type else des_type
+
+    calculator = AverageFingerprintCalculator(
         cutoff_descriptor=r_d,
         cutoff_average=r_a,
         traj_data=frames,
@@ -100,27 +92,21 @@ def calc_descriptor(variables):
         element_conversion=target_elements,
         descriptor_type=des_type,
     )
-    laaf_file = f'{out_directory}{des_name}_{r_d}_{r_a}_{t_specie}_{tne}.dat'
-    print(laaf_file)
-    my_laaf.compute_averaged_fingeprints_selection(
-        #append= tne_id > 0,
-        output_file=laaf_file,
+    out_file = f'{out_directory}{des_name}_{r_d}_{r_a}_{t_specie}_{tne}.dat'
+    print(out_file)
+    calculator.compute_averaged_fingeprints_selection(
+        output_file=out_file,
         target_element=target_elements[t_specie],
-        target_neighbor_element = target_elements[tne], 
-        selected_atoms=None #list(selected_atom_indices)
+        target_neighbor_element=target_elements[tne],
+        selected_atoms=None,
     )
-    return  
 
-#def mpi(variables):
-#    return pool.apply_async(calc_descriptor, args=(variables,))
 
 def calculate_descriptors():
-    start_time = time.perf_counter()
-    job_variables, frames = initialize_variables()
-    pool = multiprocessing.Pool(no_mpi_processors)
-    jobs = [pool.apply_async(calc_descriptor, args=(variables,)) for variables in job_variables]
-    #jobs.append(pool.apply_async(force_descriptor, args=(frames,)))
-    result = [job.get() for job in jobs]
-    finish_time = time.perf_counter()
-    print(f"Program finished in {finish_time-start_time} seconds")
-    return
+    args = _parse_args()
+    t0 = time.perf_counter()
+    job_variables, _ = _build_jobs(args.descriptor, args.n_eta)
+    with multiprocessing.Pool(no_mpi_processors) as pool:
+        jobs = [pool.apply_async(_calc_descriptor, args=(v,)) for v in job_variables]
+        [j.get() for j in jobs]
+    print(f'Finished in {time.perf_counter() - t0:.1f} s')
