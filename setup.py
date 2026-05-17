@@ -18,7 +18,7 @@ install_requires = [
 
 setup(
     name='AtomicAI',
-    version='0.3.0',
+    version='0.4.0',
     token='selva',
     author='Selva Chandrasekaran Selvaraj',
     author_email='selvachandrasekar.s@gmail.com',
