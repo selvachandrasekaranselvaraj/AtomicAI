@@ -150,3 +150,13 @@ using Python multiprocessing:
 .. code-block:: bash
 
    generate_descriptors traj.xyz --descriptor ACSF_G2 ACSF_G2G4 SOAP MBSF --n-eta 50
+
+GPU acceleration
+----------------
+
+All ACSF and MBSF descriptor kernels (G2, G3, G4, G5, GR, GA) are
+GPU-accelerated using ``numba.cuda`` when a CUDA-capable GPU is available.
+The same ``generate_descriptors`` command benefits automatically — no flags
+or code changes are required.
+
+See :doc:`gpu_acceleration` for installation instructions and details.

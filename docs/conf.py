@@ -3,9 +3,9 @@ import sys
 sys.path.insert(0, os.path.abspath('..'))
 
 project = 'AtomicAI'
-copyright = '2024, Selva Chandrasekaran Selvaraj'
+copyright = '2026, Selva Chandrasekaran Selvaraj'
 author = 'Selva Chandrasekaran Selvaraj'
-release = '0.4.0'
+release = '0.5.0'
 
 extensions = [
     'sphinx.ext.autodoc',
@@ -36,7 +36,7 @@ autodoc_default_options = {
     'show-inheritance': True,
 }
 autodoc_mock_imports = [
-    'numba', 'dscribe', 'pymatgen', 'mpi4py',
+    'numba', 'numba.cuda', 'cuda', 'dscribe', 'pymatgen', 'mpi4py',
     'AtomicAI.data.descriptor_cutoff',
     'AtomicAI.descriptors.force_descriptor_functions',
     'AtomicAI.descriptors.MultiSplit2b3b_index_ss',

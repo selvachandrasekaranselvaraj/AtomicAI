@@ -13,12 +13,19 @@ install_requires = [
         #'plotly >= 5.22.0',
         #'pandas >= 2.2.2',
         #'kaleido >= 0.2.1',
-
         ]
+
+# GPU acceleration (optional): install numba with CUDA support.
+# Requires a CUDA-capable GPU and matching CUDA toolkit.
+# Install with: pip install numba cuda-python
+# or via conda:  conda install -c conda-forge numba cudatoolkit
+extras_require = {
+    'cuda': ['numba>=0.57', 'cuda-python>=12.0'],
+}
 
 setup(
     name='AtomicAI',
-    version='0.4.0',
+    version='0.5.0',
     author='Selva Chandrasekaran Selvaraj',
     author_email='selvachandrasekar.s@gmail.com',
     description='Processing and visualization of atomic coordinates; featurizing atomic structures',
@@ -53,7 +60,8 @@ setup(
 
     ],
     python_requires='>=3.7',
-    install_requires= install_requires, #open('requirements.txt').read(), 
+    install_requires=install_requires,
+    extras_require=extras_require,
     entry_points={'console_scripts': [
         'cq2vasp=AtomicAI.tools.cq2vasp:cq2vasp',
         'xyz2vasp=AtomicAI.tools.xyz2vasp:xyz2vasp',

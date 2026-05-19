@@ -35,6 +35,7 @@ AtomicAI offers a wide range of features for computational materials science:
 - Dimension reduction techniques (PCA, LPP, TsLPP, TsNE, UMAP)
 - Machine Learning Force Field (MLFF) generation
 - Descriptor generation for atomic environments and forces
+- **GPU-accelerated** ACSF, MBSF, and LAAF descriptor kernels via CUDA (automatic, no code changes)
 
 ### Clustering and Visualization
 - Various clustering methods
@@ -48,9 +49,35 @@ Install AtomicAI using pip:
 pip install AtomicAI
 ```
 
+For GPU-accelerated descriptor computation (requires a CUDA-capable NVIDIA GPU):
+
+```bash
+pip install "AtomicAI[cuda]"
+```
+
+Or via conda (recommended for CUDA toolkit management):
+
+```bash
+conda install -c conda-forge numba cudatoolkit
+pip install AtomicAI
+```
+
 ## Requirements
 
 AtomicAI requires Python 3.7 or higher. Other dependencies will be automatically installed during the pip installation process.
+
+### GPU Acceleration (optional)
+
+| Requirement | Version |
+|-------------|---------|
+| CUDA-capable NVIDIA GPU | compute capability ≥ 3.5 |
+| CUDA Toolkit | 11.x or 12.x |
+| `numba` | ≥ 0.57 |
+| `cuda-python` | ≥ 12.0 |
+
+GPU support is detected automatically at runtime. When a CUDA GPU is available,
+all ACSF (G2, G3, G4, G5), MBSF, and LAAF descriptor kernels run on the GPU
+without any code changes.
 
 ## Usage
 
@@ -187,11 +214,43 @@ For more details on any tool, run it with the `--help` flag.
 
 ## Examples
 
-(This section should be filled with basic examples of how to use the main features of AtomicAI. As the context doesn't provide specific examples, I'll leave this section for you to fill in with relevant use cases.)
+```bash
+# Convert VASP structure to XYZ
+vasp2xyz POSCAR
+
+# Compute G2 + G4 descriptors from an MD trajectory (GPU-accelerated if available)
+generate_descriptors trajectory.xyz --descriptor ACSF_G2G4 --n-eta 60
+
+# Generate force descriptors and train an MLFF
+generate_force_descriptors trajectory.xyz --fp-type Split2b3b_ss --rc 10.5
+
+# Compute RDF from two trajectories for comparison
+rdf liquid.xyz solid.xyz
+
+# Build a multilayer heterostructure
+build_multilayers POSCAR_MoS2 POSCAR_WSe2
+
+# Generate surface slabs for all common Miller indices
+surfaces POSCAR
+
+# Dimensionality reduction on descriptor data
+dim_reduction
+```
 
 ## Documentation
 
-(Add a link to the full documentation when available. The context doesn't provide this information, so you may want to add it when documentation is ready.)
+Full documentation is available at **https://atomicai.readthedocs.io/en/latest/**
+
+Topics covered:
+
+- [Installation](https://atomicai.readthedocs.io/en/latest/installation.html)
+- [Quick Start](https://atomicai.readthedocs.io/en/latest/quickstart.html)
+- [Atomic Descriptors](https://atomicai.readthedocs.io/en/latest/usage/descriptors.html)
+- [GPU Acceleration](https://atomicai.readthedocs.io/en/latest/usage/gpu_acceleration.html)
+- [Force Descriptors](https://atomicai.readthedocs.io/en/latest/usage/force_descriptors.html)
+- [Machine Learning Force Fields](https://atomicai.readthedocs.io/en/latest/usage/mlff.html)
+- [Dimensionality Reduction](https://atomicai.readthedocs.io/en/latest/usage/dim_reduction.html)
+- [API Reference](https://atomicai.readthedocs.io/en/latest/api/descriptors.html)
 
 ## Contributing
 

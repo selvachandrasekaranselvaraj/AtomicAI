@@ -9,7 +9,9 @@ import numpy as np
 from numpy import exp
 from numba import jit
 
-from AtomicAI.descriptors.acsf import ACSF
+from AtomicAI.descriptors.acsf import ACSF, _CUDA_AVAILABLE
+if _CUDA_AVAILABLE:
+    from AtomicAI.descriptors.acsf import _cuda
 from AtomicAI.descriptors.mbsf import MBSF
 from dscribe.descriptors import SOAP
 
@@ -90,6 +92,68 @@ def calculate_fingerprint_vector(
             fingerprint_vector[eta_offset:eta_offset + number_of_eta] += addition_term
 
     return fingerprint_vector  # Size = number of eta x 2
+
+
+if _CUDA_AVAILABLE:
+    @_cuda.jit
+    def _calculate_fingerprint_vector_cuda(
+            x_list, y_list, z_list, atomic_type_list,
+            lattice_a, lattice_b, lattice_c,
+            eta_list, atom_type, cutoff_descriptor, out):
+        """CUDA kernel: one thread per atom i, writes into out[i, :]."""
+        i = _cuda.grid(1)
+        n_atoms = x_list.shape[0]
+        if i >= n_atoms:
+            return
+        number_of_eta = eta_list.shape[0]
+        rcut2 = cutoff_descriptor * cutoff_descriptor
+        xi = x_list[i]
+        yi = y_list[i]
+        zi = z_list[i]
+        for j in range(n_atoms):
+            dx = 0.5 * lattice_a - ((x_list[j] - xi + 1.5 * lattice_a) % lattice_a)
+            dy = 0.5 * lattice_b - ((y_list[j] - yi + 1.5 * lattice_b) % lattice_b)
+            dz = 0.5 * lattice_c - ((z_list[j] - zi + 1.5 * lattice_c) % lattice_c)
+            if int(atomic_type_list[j]) == int(atom_type):
+                eta_offset = 0
+            else:
+                eta_offset = number_of_eta
+            if abs(dx) > cutoff_descriptor or abs(dy) > cutoff_descriptor or abs(dz) > cutoff_descriptor:
+                continue
+            r2 = dx * dx + dy * dy + dz * dz
+            if 1e-15 < r2 < rcut2:
+                r_ij = math.sqrt(r2)
+                fcut = 0.5 * (math.cos(math.pi * r_ij / cutoff_descriptor) + 1.0)
+                for k in range(number_of_eta):
+                    eta = eta_list[k]
+                    val = r_ij / eta
+                    out[i, eta_offset + k] += math.exp(-(val * val)) * fcut
+
+
+def _calculate_fingerprints_gpu(x_list, y_list, z_list, atomic_type_list,
+                                 lattice_a, lattice_b, lattice_c,
+                                 eta_list, atom_type, cutoff_descriptor):
+    """Compute Botu fingerprint vectors for all atoms using the GPU."""
+    import math as _math
+    n_atoms = len(x_list)
+    number_of_eta = len(eta_list)
+    out = np.zeros((n_atoms, 2 * number_of_eta), dtype=np.float64)
+
+    d_x = _cuda.to_device(np.ascontiguousarray(x_list, dtype=np.float64))
+    d_y = _cuda.to_device(np.ascontiguousarray(y_list, dtype=np.float64))
+    d_z = _cuda.to_device(np.ascontiguousarray(z_list, dtype=np.float64))
+    d_types = _cuda.to_device(np.ascontiguousarray(atomic_type_list, dtype=np.float64))
+    d_eta = _cuda.to_device(np.ascontiguousarray(eta_list, dtype=np.float64))
+    d_out = _cuda.to_device(out)
+
+    threads = 256
+    blocks = max(1, (n_atoms + threads - 1) // threads)
+    _calculate_fingerprint_vector_cuda[blocks, threads](
+        d_x, d_y, d_z, d_types,
+        float(lattice_a), float(lattice_b), float(lattice_c),
+        d_eta, int(atom_type), float(cutoff_descriptor), d_out,
+    )
+    return d_out.copy_to_host()
 
 
 def calculate_average_fingerprint(
@@ -364,40 +428,52 @@ def calculate_average_fingerprint(
                     selected_snapshot)  # TODO: call create without system?
             else:
                 # Original Botu atomic fingerprint
-                fingerprint_vector_list = np.zeros((number_of_atoms, 2 * number_of_eta))
                 eta_list = np.array(eta_list)
-
-                for atom_i in range(number_of_atoms):
-                    x_ij_array = x_list - x_list[atom_i]
-                    y_ij_array = y_list - y_list[atom_i]
-                    z_ij_array = z_list - z_list[atom_i]
-                    fingerprint_vector_list[atom_i] = calculate_fingerprint_vector(
-                        x_ij_array, y_ij_array, z_ij_array,
-                        atomic_type_list,
+                if _CUDA_AVAILABLE:
+                    fingerprint_vector_list = _calculate_fingerprints_gpu(
+                        x_list, y_list, z_list, atomic_type_list,
                         lattice_a, lattice_b, lattice_c,
-                        eta_list, atomic_type_list[atom_i],
-                        cutoff_descriptor=cutoff_descriptor,
+                        eta_list, target_element, cutoff_descriptor,
                     )
+                else:
+                    fingerprint_vector_list = np.zeros((number_of_atoms, 2 * number_of_eta))
+                    for atom_i in range(number_of_atoms):
+                        x_ij_array = x_list - x_list[atom_i]
+                        y_ij_array = y_list - y_list[atom_i]
+                        z_ij_array = z_list - z_list[atom_i]
+                        fingerprint_vector_list[atom_i] = calculate_fingerprint_vector(
+                            x_ij_array, y_ij_array, z_ij_array,
+                            atomic_type_list,
+                            lattice_a, lattice_b, lattice_c,
+                            eta_list, atomic_type_list[atom_i],
+                            cutoff_descriptor=cutoff_descriptor,
+                        )
         else:
 
             if local_descriptor:
                 fingerprint_vector_list = local_descriptor.create(selected_snapshot)
             else:
                 # Original Botu atomic fingerprint
-                fingerprint_vector_list = np.zeros((number_of_atoms, 2 * number_of_eta))
                 eta_list = np.array(eta_list)
-
-                for atom_i in range(number_of_atoms):
-                    x_ij_array = x_list - x_list[atom_i]
-                    y_ij_array = y_list - y_list[atom_i]
-                    z_ij_array = z_list - z_list[atom_i]
-                    fingerprint_vector_list[atom_i] = calculate_fingerprint_vector(
-                        x_ij_array, y_ij_array, z_ij_array,
-                        atomic_type_list,
+                if _CUDA_AVAILABLE:
+                    fingerprint_vector_list = _calculate_fingerprints_gpu(
+                        x_list, y_list, z_list, atomic_type_list,
                         lattice_a, lattice_b, lattice_c,
-                        eta_list, atomic_type_list[atom_i],
-                        cutoff_descriptor=cutoff_descriptor,
+                        eta_list, target_element, cutoff_descriptor,
                     )
+                else:
+                    fingerprint_vector_list = np.zeros((number_of_atoms, 2 * number_of_eta))
+                    for atom_i in range(number_of_atoms):
+                        x_ij_array = x_list - x_list[atom_i]
+                        y_ij_array = y_list - y_list[atom_i]
+                        z_ij_array = z_list - z_list[atom_i]
+                        fingerprint_vector_list[atom_i] = calculate_fingerprint_vector(
+                            x_ij_array, y_ij_array, z_ij_array,
+                            atomic_type_list,
+                            lattice_a, lattice_b, lattice_c,
+                            eta_list, atomic_type_list[atom_i],
+                            cutoff_descriptor=cutoff_descriptor,
+                        )
         if use_buffer:
             fingerprint_buffer[selected_step] = fingerprint_vector_list
 

@@ -24,6 +24,7 @@ structure analysis, file format conversion, and dimensionality reduction.
    usage/dim_reduction
    usage/analysis
    usage/visualization
+   usage/gpu_acceleration
 
 .. toctree::
    :maxdepth: 2

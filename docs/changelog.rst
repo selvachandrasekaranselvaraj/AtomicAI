@@ -1,6 +1,26 @@
 Changelog
 =========
 
+0.5.0 (2026)
+------------
+
+**New features**
+
+* **GPU acceleration** — CUDA-accelerated descriptor kernels via ``numba.cuda``
+  for all ACSF (G2, G3, G4, G5), MBSF (GR, GA), and Botu (LAAF) fingerprint
+  functions. GPU dispatch is automatic: if a CUDA-capable GPU is detected at
+  import time, ``ACSF.create()`` and ``MBSF.create()`` use the GPU path;
+  otherwise the existing CPU ``@jit`` path is used unchanged.
+* ``setup.py``: added ``extras_require={'cuda': ['numba>=0.57', 'cuda-python>=12.0']}``
+  so users can install GPU dependencies with ``pip install "AtomicAI[cuda]"``.
+* New documentation page: *GPU Acceleration* (``usage/gpu_acceleration``).
+
+**Improvements**
+
+* ``ACSF.create()`` and ``MBSF.create()`` refactored into ``_create_cpu()``
+  and ``_create_cuda()`` helpers for clarity and testability; public interface
+  is unchanged.
+
 0.4.0 (2025)
 ------------
 

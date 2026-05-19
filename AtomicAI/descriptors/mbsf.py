@@ -11,12 +11,17 @@
         Physics, 134, 074106 (2011), https://doi.org/10.1063/1.3553717
 """
 
+import math
 import numpy as np
 from math import cos, sqrt, exp, pi, acos
 
 from numba import jit
 from ase.atoms import Atoms
 from dscribe.utils.species import symbols_to_numbers
+
+from AtomicAI.descriptors.acsf import _CUDA_AVAILABLE
+if _CUDA_AVAILABLE:
+    from AtomicAI.descriptors.acsf import _cuda
 
 
 class MBSF():
@@ -72,12 +77,12 @@ class MBSF():
             exit()
 
     def create(self, system, positions=None):
-        """Return the ACSF output for the given systems and given positions.
+        """Return the MBSF output for the given systems and given positions.
 
         Args:
             system (:class:`ase.Atoms` or list of :class:`ase.Atoms`): One or
                 many atomic structures.
-            positions (list): Positions where to calculate ACSF. Can be
+            positions (list): Positions where to calculate MBSF. Can be
                 provided as cartesian positions or atomic indices. If no
                 positions are defined, the output will be created for all
                 atoms in the system. When calculating for multiple
@@ -85,7 +90,6 @@ class MBSF():
         Returns:
             np.ndarray
         """
-        # Validate input / combine input arguments
         if isinstance(system, Atoms):
             system = [system]
         if positions is None:
@@ -93,11 +97,15 @@ class MBSF():
         else:
             inp = list(zip(system, positions))
 
+        if _CUDA_AVAILABLE:
+            return self._create_cuda(inp)
+        return self._create_cpu(inp)
+
+    def _create_cpu(self, inp):
         fingerprint_all_ary = []
         for id_system, (target_atoms, target_positions) in enumerate(inp):
             local_positions = target_atoms.positions
 
-            # convert the list of atomic numbers with the order of species
             numbers = target_atoms.numbers
             numbers_of_species = symbols_to_numbers(self.species)
             atomic_type_list = np.zeros(len(numbers))
@@ -105,13 +113,10 @@ class MBSF():
                 mask = np.argwhere(numbers == int(number)).flatten()
                 atomic_type_list[mask] = int(number_id)
 
-            # Get cell parameters
-            # Current available cell system : orthorhombic
             cell = target_atoms.cell
             lattice_a, lattice_b, lattice_c = cell[0, 0], cell[1, 1], cell[2, 2]
             lattice_parameters = [lattice_a, lattice_b, lattice_c]
 
-            # Get x, y, z coordination
             x_list = local_positions[:, 0]
             y_list = local_positions[:, 1]
             z_list = local_positions[:, 2]
@@ -160,8 +165,70 @@ class MBSF():
                     )
 
             fingerprint_all_ary.extend(list(fingerprint_vector_ary))
-        fingerprint_all_ary = np.array(fingerprint_all_ary)
-        return fingerprint_all_ary
+        return np.array(fingerprint_all_ary)
+
+    def _create_cuda(self, inp):
+        fingerprint_all_ary = []
+        for _, (target_atoms, target_positions) in enumerate(inp):
+            local_positions = target_atoms.positions
+
+            numbers = target_atoms.numbers
+            numbers_of_species = symbols_to_numbers(self.species)
+            atomic_type_list = np.zeros(len(numbers), dtype=np.float64)
+            for number_id, number in enumerate(numbers_of_species):
+                mask = np.argwhere(numbers == int(number)).flatten()
+                atomic_type_list[mask] = float(number_id)
+
+            cell = target_atoms.cell
+            lattice_a = float(cell[0, 0])
+            lattice_b = float(cell[1, 1])
+            lattice_c = float(cell[2, 2])
+
+            x_list = np.ascontiguousarray(local_positions[:, 0], dtype=np.float64)
+            y_list = np.ascontiguousarray(local_positions[:, 1], dtype=np.float64)
+            z_list = np.ascontiguousarray(local_positions[:, 2], dtype=np.float64)
+            target_arr = np.ascontiguousarray(target_positions, dtype=np.int32)
+            n_target = len(target_arr)
+            n_species = len(self.species)
+
+            d_x = _cuda.to_device(x_list)
+            d_y = _cuda.to_device(y_list)
+            d_z = _cuda.to_device(z_list)
+            d_types = _cuda.to_device(atomic_type_list)
+            d_target = _cuda.to_device(target_arr)
+
+            threads = 256
+            blocks = max(1, (n_target + threads - 1) // threads)
+
+            fingerprint_vector_ary = np.zeros((n_target, self.nfp_gr + self.nfp_ga))
+            startid, endid = 0, 0
+
+            if self.nfp_gr:
+                d_out = _cuda.to_device(np.zeros((n_target, self.nfp_gr), dtype=np.float64))
+                d_params = _cuda.to_device(np.ascontiguousarray(self.params_gr, dtype=np.float64))
+                _get_gr_cuda[blocks, threads](
+                    d_x, d_y, d_z, d_types,
+                    lattice_a, lattice_b, lattice_c,
+                    d_params, self.rcut, d_target, d_out,
+                )
+                startid = endid
+                endid += self.nfp_gr
+                fingerprint_vector_ary[:, startid:endid] = d_out.copy_to_host()
+
+            if self.nfp_ga:
+                d_out = _cuda.to_device(np.zeros((n_target, self.nfp_ga), dtype=np.float64))
+                d_params = _cuda.to_device(np.ascontiguousarray(self.params_ga, dtype=np.float64))
+                _get_ga_cuda[blocks, threads](
+                    d_x, d_y, d_z, d_types,
+                    lattice_a, lattice_b, lattice_c,
+                    d_params, self.rcut, n_species, d_target, d_out,
+                )
+                startid = endid
+                endid += self.nfp_ga
+                fingerprint_vector_ary[:, startid:endid] = d_out.copy_to_host()
+
+            fingerprint_all_ary.extend(list(fingerprint_vector_ary))
+        return np.array(fingerprint_all_ary)
 
 
 @jit
@@ -527,3 +594,130 @@ def calculate_mirror_cubic(position, cell, Rc):
                 m_y.append(j * cell[1, 1])
                 m_z.append(k * cell[2, 2])
     return np.array(m_x), np.array(m_y), np.array(m_z)
+
+
+# ---------------------------------------------------------------------------
+# CUDA kernels for MBSF — compiled only when a GPU is available.
+# ---------------------------------------------------------------------------
+if _CUDA_AVAILABLE:
+    @_cuda.jit
+    def _get_gr_cuda(x_list, y_list, z_list, atomic_type_list,
+                     lattice_a, lattice_b, lattice_c,
+                     params_gr, cutoff_descriptor, target_positions, out):
+        """CUDA GR (two-body MBSF) kernel: one thread per center atom."""
+        idx = _cuda.grid(1)
+        if idx >= target_positions.shape[0]:
+            return
+        atom_i = target_positions[idx]
+        xi = x_list[atom_i]
+        yi = y_list[atom_i]
+        zi = z_list[atom_i]
+        n_atoms = x_list.shape[0]
+        n_params = params_gr.shape[0]
+        rcut2 = cutoff_descriptor * cutoff_descriptor
+
+        for j in range(n_atoms):
+            for mi in range(-1, 2):
+                dxij = x_list[j] - xi + mi * lattice_a
+                if abs(dxij) > cutoff_descriptor:
+                    continue
+                for mj_ in range(-1, 2):
+                    dyij = y_list[j] - yi + mj_ * lattice_b
+                    if abs(dyij) > cutoff_descriptor:
+                        continue
+                    for mk in range(-1, 2):
+                        dzij = z_list[j] - zi + mk * lattice_c
+                        if abs(dzij) > cutoff_descriptor:
+                            continue
+                        rij2 = dxij * dxij + dyij * dyij + dzij * dzij
+                        if rij2 < 1e-15 or rij2 >= rcut2:
+                            continue
+                        r_ij = math.sqrt(rij2)
+                        offset = int(atomic_type_list[j]) * n_params
+                        fcut = 0.5 * (math.cos(math.pi * r_ij / cutoff_descriptor) + 1.0)
+                        for k in range(n_params):
+                            eta = params_gr[k, 0]
+                            rs = params_gr[k, 1]
+                            dt = r_ij - rs
+                            out[idx, offset + k] += math.exp(-eta * dt * dt) * fcut
+
+    @_cuda.jit
+    def _get_ga_cuda(x_list, y_list, z_list, atomic_type_list,
+                     lattice_a, lattice_b, lattice_c,
+                     params_ga, cutoff_descriptor, n_species, target_positions, out):
+        """CUDA GA (three-body MBSF) kernel: one thread per center atom."""
+        idx = _cuda.grid(1)
+        if idx >= target_positions.shape[0]:
+            return
+        atom_i = target_positions[idx]
+        xi = x_list[atom_i]
+        yi = y_list[atom_i]
+        zi = z_list[atom_i]
+        n_atoms = x_list.shape[0]
+        n_params = params_ga.shape[0]
+        rcut2 = cutoff_descriptor * cutoff_descriptor
+
+        for j in range(n_atoms):
+            for mi in range(-1, 2):
+                dxij = x_list[j] - xi + mi * lattice_a
+                if abs(dxij) > cutoff_descriptor:
+                    continue
+                for mj_ in range(-1, 2):
+                    dyij = y_list[j] - yi + mj_ * lattice_b
+                    if abs(dyij) > cutoff_descriptor:
+                        continue
+                    for mk in range(-1, 2):
+                        dzij = z_list[j] - zi + mk * lattice_c
+                        if abs(dzij) > cutoff_descriptor:
+                            continue
+                        rij2 = dxij * dxij + dyij * dyij + dzij * dzij
+                        if rij2 < 1e-15 or rij2 >= rcut2:
+                            continue
+
+                        for k in range(j + 1, n_atoms):
+                            for mi2 in range(-1, 2):
+                                dxik = x_list[k] - xi + mi2 * lattice_a
+                                if abs(dxik) > cutoff_descriptor:
+                                    continue
+                                for mj2 in range(-1, 2):
+                                    dyik = y_list[k] - yi + mj2 * lattice_b
+                                    if abs(dyik) > cutoff_descriptor:
+                                        continue
+                                    for mk2 in range(-1, 2):
+                                        dzik = z_list[k] - zi + mk2 * lattice_c
+                                        if abs(dzik) > cutoff_descriptor:
+                                            continue
+                                        rik2 = dxik * dxik + dyik * dyik + dzik * dzik
+                                        if rik2 < 1e-15 or rik2 >= rcut2:
+                                            continue
+
+                                        r_ij = math.sqrt(rij2)
+                                        r_ik = math.sqrt(rik2)
+                                        dxjk = dxik - dxij
+                                        dyjk = dyik - dyij
+                                        dzjk = dzik - dzij
+                                        rjk2 = dxjk * dxjk + dyjk * dyjk + dzjk * dzjk
+
+                                        sj = int(atomic_type_list[j])
+                                        sk = int(atomic_type_list[k])
+                                        if sj > sk:
+                                            tmp = sj; sj = sk; sk = tmp
+                                        order_shift = 0
+                                        for ni_ in range(sj):
+                                            order_shift += n_species - ni_
+                                        order_shift += sk - sj
+
+                                        cos_theta = (rij2 + rik2 - rjk2) / (2.0 * r_ij * r_ik)
+                                        fcut = (0.5 * (math.cos(math.pi * r_ij / cutoff_descriptor) + 1.0) *
+                                                0.5 * (math.cos(math.pi * r_ik / cutoff_descriptor) + 1.0))
+                                        params_off = order_shift * n_params
+                                        for ip in range(n_params):
+                                            zeta0 = params_ga[ip, 0]
+                                            theta_s = params_ga[ip, 1]
+                                            eta0 = params_ga[ip, 2]
+                                            rs = params_ga[ip, 3]
+                                            r_mean = 0.5 * (r_ij + r_ik)
+                                            dt = r_mean - rs
+                                            ang = math.pow(2.0, 1.0 - zeta0) * math.pow(
+                                                1.0 + math.cos(cos_theta - theta_s), zeta0)
+                                            out[idx, params_off + ip] += ang * math.exp(-eta0 * dt * dt) * fcut
