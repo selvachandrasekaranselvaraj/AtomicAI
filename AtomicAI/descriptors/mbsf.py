@@ -1,14 +1,15 @@
 """
-    Modified Behler-Parrinello symmetry functions (MBSF) [1],
-    is a modified version of Behler-Parrinello atom-centered symmetry functions (ACSF)[2].
-    Support two-body and three-body fingerprints
+Modified Behler-Parrinello symmetry functions (MBSF) [1],
+a modified version of Behler-Parrinello atom-centered symmetry functions (ACSF) [2].
+Supports two-body and three-body fingerprints.
 
-    Notice that the order of pair in descriptors follows the order of defined species
+The order of pairs in descriptors follows the order of defined species.
 
-    [1] Smith J S, Isayev O and Roitberg A E 2017 Chem. sci. 8 3192
-    [2] Jörg Behler, "Atom-centered symmetry functions for constructing high-dimensional
-        neural network potentials", The Journal of Chemical
-        Physics, 134, 074106 (2011), https://doi.org/10.1063/1.3553717
+[1] Smith J S, Isayev O and Roitberg A E 2017 Chem. Sci. 8 3192
+
+[2] Jörg Behler, "Atom-centered symmetry functions for constructing high-dimensional
+    neural network potentials", J. Chem. Phys. 134, 074106 (2011),
+    https://doi.org/10.1063/1.3553717
 """
 
 import math
@@ -270,7 +271,8 @@ def get_gr_nblst(
         nb_r2_lst: np.float64,
 ):
     """
-        Calculate the fingerprint vector for a single atom i
+        Calculate the fingerprint vector for a single atom i.
+
     :param xij:
     :param yij:
     :param zij:
@@ -282,11 +284,6 @@ def get_gr_nblst(
     :param atom_type:
     :param cutoff_descriptor:
     :return:
-    """
-
-    """
-        Calculate the fingerprint vector
-        Only for orthorhombic cell
     """
 
     number_of_params_gr = len(params_gr_list)
@@ -317,7 +314,8 @@ def get_gr(
         n_species: int,
 ):
     """
-        Calculate the fingerprint vector for a single atom i
+        Calculate the fingerprint vector for a single atom i.
+
     :param xij:
     :param yij:
     :param zij:
@@ -329,11 +327,6 @@ def get_gr(
     :param atom_type:
     :param cutoff_descriptor:
     :return:
-    """
-
-    """
-        Calculate the fingerprint vector
-        Only for orthorhombic cell
     """
 
     number_of_params_2b = len(params_2b_list)
@@ -381,7 +374,8 @@ def get_grga(
         n_species: int,
 ):
     """
-        Calculate the fingerprint vector for a single atom i
+        Calculate the fingerprint vector for a single atom i.
+
     :param xij:
     :param yij:
     :param zij:
@@ -393,11 +387,6 @@ def get_grga(
     :param atom_type:
     :param cutoff_descriptor:
     :return:
-    """
-
-    """
-        Calculate the fingerprint vector
-        Only for orthorhombic cell
     """
     order_shift_species = np.zeros((n_species, n_species))
     order_shift = 0
@@ -494,7 +483,8 @@ def get_ga_nblst(
         nb_r2_lst: np.float64,
 ):
     """
-        Calculate the fingerprint vector for a single atom i
+        Calculate the fingerprint vector for a single atom i.
+
     :param xij:
     :param yij:
     :param zij:
@@ -506,11 +496,6 @@ def get_ga_nblst(
     :param atom_type:
     :param cutoff_descriptor:
     :return:
-    """
-
-    """
-        Calculate the fingerprint vector
-        Only for orthorhombic cell
     """
     order_shift_species = np.zeros((n_species, n_species))
     order_shift = 0

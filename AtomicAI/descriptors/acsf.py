@@ -302,7 +302,8 @@ def get_g2(
         n_species: int,
 ):
     """
-        Calculate the fingerprint vector for a single atom i
+        Calculate the fingerprint vector for a single atom i.
+
     :param n_species:
     :param params_2b_list:
     :param xij:
@@ -315,12 +316,6 @@ def get_g2(
     :param cutoff_descriptor:
     :return:
     """
-
-    """
-        Calculate the fingerprint vector
-        Only for orthorhombic cell
-    """
-
     number_of_params_2b = len(params_2b_list)
     number_of_atoms = len(xij)
     cutoff_squared = cutoff_descriptor * cutoff_descriptor
@@ -366,7 +361,8 @@ def get_g3(
         n_species: int,
 ):
     """
-        Calculate the fingerprint vector for a single atom i
+        Calculate the fingerprint vector for a single atom i.
+
     :param params_g3_list:
     :param n_species:
     :param xij:
@@ -379,12 +375,6 @@ def get_g3(
     :param cutoff_descriptor:
     :return:
     """
-
-    """
-        Calculate the fingerprint vector
-        Only for orthorhombic cell
-    """
-
     number_of_params_g3 = len(params_g3_list)
     number_of_atoms = len(xij)
     cutoff_squared = cutoff_descriptor * cutoff_descriptor
@@ -428,7 +418,8 @@ def get_g4(
         n_species: int,
 ):
     """
-        Calculate the fingerprint vector for a single atom i
+        Calculate the fingerprint vector for a single atom i.
+
     :param n_species:
     :param params_g4_list:
     :param m_z:
@@ -538,7 +529,8 @@ def get_g5(
         n_species: int,
 ):
     """
-        Calculate the fingerprint vector of G5 for a single atom i
+        Calculate the fingerprint vector of G5 for a single atom i.
+
     :param n_species:
     :param params_g5_list:
     :param m_z:
@@ -550,11 +542,6 @@ def get_g5(
     :param atomic_type_list:
     :param cutoff_descriptor:
     :return:
-    """
-
-    """
-        Calculate the fingerprint vector
-        Only for orthorhombic cell
     """
     order_shift_species = np.zeros((n_species, n_species))
     order_shift = 0
@@ -1031,7 +1018,8 @@ def get_v2b(
         n_species: int,
 ):
     """
-        Calculate the fingerprint vector for a single atom i
+        Calculate the fingerprint vector for a single atom i.
+
     :param xij:
     :param yij:
     :param zij:
@@ -1043,12 +1031,6 @@ def get_v2b(
     :param cutoff_descriptor:
     :return:
     """
-
-    """
-        Calculate the fingerprint vector
-        Only for orthorhombic cell
-    """
-
     number_of_params_2b = len(params_2b_list)
     number_of_atoms = len(xij)
     number_of_mirror = len(m_x)
@@ -1095,7 +1077,8 @@ def get_v3b(
         n_species: int,
 ):
     """
-        Calculate the fingerprint vector for a single atom i
+        Calculate the fingerprint vector for a single atom i.
+
     :param xij:
     :param yij:
     :param zij:
@@ -1107,12 +1090,6 @@ def get_v3b(
     :param cutoff_descriptor:
     :return:
     """
-
-    """
-        Calculate the fingerprint vector
-        Only for orthorhombic cell
-    """
-
     number_of_params_v3b = len(params_v3b_list)
     number_of_atoms = len(xij)
     number_of_mirror = len(m_x)
@@ -1156,7 +1133,8 @@ def set_eta(
         number_of_eta: int = 100,
 ):
     """
-        Calculate the decay function [goes from R0 to cutoff]
+        Calculate the decay function [goes from R0 to cutoff].
+
     :return: list of eta
     """
 

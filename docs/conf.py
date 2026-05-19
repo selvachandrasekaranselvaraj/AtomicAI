@@ -43,7 +43,6 @@ autodoc_mock_imports = [
     'AtomicAI.descriptors.prepare_vforce',
     'AtomicAI.descriptors.get_parameter',
     'AtomicAI.mlff.select_data_from_trajectory',
-    'AtomicAI.mlff.LassoLarCV',
     'AtomicAI.mlff.plot_vt_r2',
 ]
 

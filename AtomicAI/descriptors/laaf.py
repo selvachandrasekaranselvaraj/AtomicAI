@@ -46,6 +46,7 @@ def calculate_fingerprint_vector(
     """
         Calculate the fingerprint vector for a single atom i.
         Original implementation of Botu descriptor.
+
     :param x_ij:
     :param y_ij:
     :param z_ij:
@@ -185,6 +186,7 @@ def calculate_average_fingerprint(
         target_neighbor_element.
         REMARK: Descriptor order is different between original and acsf g2:
         original is 0-0/0-1 while acsf g2 is 0-1/0-0
+
     :param target_neighbor_element:
     :param descriptor_parameters: specific parameters for descriptors. For advanced use!
     :param selected_snapshots: str compliant with ase.io.read function

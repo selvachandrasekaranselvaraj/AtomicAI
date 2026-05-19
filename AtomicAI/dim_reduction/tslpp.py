@@ -32,6 +32,7 @@ def tslpp(features, reduced_dim, sigma, intermediate_dimensions):
 def new_centering(reference_data, my_data):
     """
         Keep only columns that have some variance.
+
     :param reference_data:
     :param my_data:
     :return:
@@ -50,6 +51,7 @@ def compute_lpp(
 ):
     """
         Locally preserving projection.
+
     :param n_components_target:
     :param sigma:
     :param descriptor_data: 2D array (typically, numpy.array)
