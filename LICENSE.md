@@ -1,4 +1,4 @@
-Copyright (c) 2022 The Python Packaging Authority
+Copyright (c) 2022 Selva Chandrasekaran Selvaraj
 Author: Selva Chandrasekaran
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
